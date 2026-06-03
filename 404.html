@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script>
+// Ловим токен из хэша и перекидываем на тренажёр
+var hash = window.location.hash;
+if (hash && hash.includes('access_token')) {
+  window.location.href = '/Trainer/' + hash;
+} else {
+  window.location.href = '/Trainer/';
+}
+</script>
+</head>
+<body></body>
+</html>
