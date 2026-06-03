@@ -222,7 +222,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .qtext table{white-space:normal;border-collapse:collapse;margin:10px auto;font-size:15px;max-width:100%}
 .qtext td,.qtext th{border:1px solid var(--line);padding:7px 12px;text-align:center;white-space:nowrap;background:var(--bg2)}
 .qtext th{background:var(--panel2);font-weight:600}
-.qtext img{max-width:100%;max-height:160px;object-fit:contain;border-radius:10px;margin-top:10px;background:#fff;padding:6px;display:block}
+.qtext img{max-width:100%;max-height:140px;object-fit:contain;border-radius:10px;margin-top:10px;background:#fff;padding:6px;display:block;-webkit-user-drag:none;}
 /* opts */
 .opts{display:flex;flex-direction:column;gap:9px}
 .opt{display:flex;gap:11px;align-items:flex-start;background:var(--bg2);border:1.5px solid var(--line);
@@ -251,6 +251,8 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .match-table{width:100%;border-collapse:collapse}
 .match-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;transition:background .25s}
 .match-table td.match-left{font-weight:500;font-size:14.5px;white-space:pre-wrap;padding-right:14px}
+/* Картинки-формулы в сопоставлении */
+.match-left img{max-width:100%;max-height:72px;object-fit:contain;background:#fff;border-radius:4px;padding:3px;display:block;margin:4px 0;-webkit-user-drag:none;}
 .match-table select{width:100%;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);
   border-radius:9px;padding:9px 10px;font-family:var(--sans);font-size:14px;outline:none;cursor:pointer;
   appearance:none;-webkit-appearance:none;
@@ -264,6 +266,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .order-list{display:flex;flex-direction:column;gap:8px;user-select:none}
 .order-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--line);
   border-radius:var(--r);padding:10px 13px;cursor:grab;transition:transform .2s,border-color .2s,box-shadow .2s,opacity .2s}
+.order-item img{max-height:50px;pointer-events:none;-webkit-user-drag:none;}
 .order-item:active{cursor:grabbing}
 .order-item.dragging{opacity:.4;transform:scale(.97)}
 .order-item.drag-over{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-2px)}
@@ -435,6 +438,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
       <h1 id="homeGreet">Тренажёр</h1>
       <div class="home-top-actions">
         <button class="btn ghost sm" id="soundBtn">🔊</button>
+        <span id="syncIcon" title="Облачная синхронизация" style="font-size:17px;cursor:default;line-height:1;padding:2px 4px" title="Прогресс в облаке">☁️</span>
       <button class="btn ghost sm" id="themeBtn">🎨</button>
         <button class="btn ghost sm" id="cabBtn">Кабинет</button>
       </div>
@@ -493,6 +497,68 @@ function playComplete(){ [0,100,200,320,480].forEach((t,i)=>setTimeout(()=>beep(
 function load(){ try{const d=JSON.parse(localStorage.getItem(LS)); return d||null;}catch(e){return null;} }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(profile));}catch(e){} }
 let profile = load() || {name:'',stats:{},sessions:0,theme:'dark'};
+
+/* ========== SUPABASE CLOUD SYNC ========== */
+const SB_URL='https://lmgwuqzzsrtotmrlpxbm.supabase.co';
+const SB_KEY='sb_publishable_lAJYgT1zRn77lE9dKfJXRg_6vveClP0';
+
+function getUid(){
+  let u=localStorage.getItem('trainer_uid');
+  if(!u){
+    u=(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
+    localStorage.setItem('trainer_uid',u);
+  }
+  return u;
+}
+function setSyncIcon(s){
+  const el=document.getElementById('syncIcon'); if(!el)return;
+  const icons={sync:'🔄',ok:'☁️',err:'⚡'};
+  const tips={sync:'Синхронизация...',ok:'Прогресс сохранён в облаке',err:'Нет соединения — прогресс в localStorage'};
+  el.textContent=icons[s]||'☁️'; el.title=tips[s]||''; el.style.opacity=s==='err'?'.45':'1';
+}
+async function pushToCloud(){
+  setSyncIcon('sync');
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/progress?on_conflict=user_id`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body:JSON.stringify({
+        user_id:getUid(),
+        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme},
+        updated_at:new Date().toISOString()
+      })
+    });
+    setSyncIcon(res.ok?'ok':'err');
+    if(!res.ok) console.warn('Supabase push:',res.status,await res.text());
+  }catch(e){setSyncIcon('err');console.warn('Supabase push:',e);}
+}
+async function pullFromCloud(onLoaded){
+  setSyncIcon('sync');
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}&select=data,updated_at`,{
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}
+    });
+    if(!res.ok){setSyncIcon('err');return;}
+    const rows=await res.json();
+    if(rows.length>0&&rows[0].data){
+      const c=rows[0].data;
+      if((c.sessions||0)>=(profile.sessions||0)){
+        profile.name=c.name||profile.name;
+        profile.stats=c.stats||{};
+        profile.sessions=c.sessions||0;
+        if(c.theme) applyTheme(c.theme);
+        save();
+        if(onLoaded) onLoaded();
+      }
+    }
+    setSyncIcon('ok');
+  }catch(e){setSyncIcon('err');console.warn('Supabase pull:',e);}
+}
 
 /* ========== OWL SVG ========== */
 function buildOwl(size=80){
@@ -640,7 +706,7 @@ function goBack(){
   session.wrongIds=session.wrongIds.filter(id=>id!==session.pool[last.pid]._id);
   session.hinted.delete(last.pid);
   session.history.pop();
-  session.queue.unshift(last.pid);
+  // НЕ добавляем в очередь — иначе вопрос появится дважды
   renderQ(session.pool[last.pid],last.pid,'slideBack');
   updateTop(); updateNav();
 }
@@ -742,7 +808,16 @@ function wireDnD(){
   const list=document.getElementById('orderList'); if(!list) return;
   let dragged=null;
   list.querySelectorAll('.order-item').forEach(item=>{
-    item.addEventListener('dragstart',e=>{dragged=item;item.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    item.addEventListener('dragstart',e=>{
+      dragged=item;item.classList.add('dragging');e.dataTransfer.effectAllowed='move';
+      // Кастомный ghost — иначе браузер тащит картинку
+      const ghost=document.createElement('div');
+      ghost.textContent=item.querySelector('.order-txt')?.textContent||'';
+      ghost.style.cssText='position:fixed;top:-200px;left:0;background:var(--panel2);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:14px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1.5px solid var(--accent);z-index:9999;';
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost,0,0);
+      requestAnimationFrame(()=>ghost.remove());
+    });
     item.addEventListener('dragend',()=>{dragged?.classList.remove('dragging');dragged=null;list.querySelectorAll('.order-item').forEach(i=>i.classList.remove('drag-over'));renumberOrder();});
     item.addEventListener('dragover',e=>{e.preventDefault();if(item!==dragged){item.classList.add('drag-over');list.insertBefore(dragged,item.getBoundingClientRect().top>dragged.getBoundingClientRect().top?item.nextSibling:item);}});
     item.addEventListener('dragleave',()=>item.classList.remove('drag-over'));
@@ -1051,6 +1126,7 @@ function finishSession(){
   save();
   playComplete();
   buildResult(pct,c,t,timeStr,st);
+  pushToCloud(); // сохраняем в облако после каждого теста
 }
 function buildResult(pct,c,t,timeStr,st){
   const ach=[];
@@ -1065,12 +1141,23 @@ function buildResult(pct,c,t,timeStr,st){
       <div class="chart-bar${isCur?' current':''}" style="height:0px" data-h="${h}px"></div>
       <div class="chart-lbl">${a.date}</div></div>`;
   }).join('');
-  const wrongs=session.wrong.length?`<div class="review-section"><h3>Разбор ошибок (${session.wrong.length})</h3>`+
-    session.wrong.map((q,i)=>`<div class="rev-item" style="animation-delay:${i*.03}s"><div class="rev-q">${stripTags(q.question)}</div><div class="rev-a">${correctOf(q)}</div></div>`).join('')+`</div>`:'' ;
+  // Разбор ошибок — всегда показываем, даже если 0
+  let wrongs='';
+  if(session.wrong.length){
+    const wrongRows=session.wrong.map((q,i)=>`<div class="rev-item" style="animation-delay:${i*.03}s">
+      <div class="rev-q"><span style="color:var(--bad);font-weight:600;margin-right:6px">✗</span>${stripTags(q.question).slice(0,160)}</div>
+      <div class="rev-a">Правильно: ${correctOf(q).slice(0,120)}</div>
+    </div>`).join('');
+    wrongs=`<div class="review-section"><h3>Неверные ответы (${session.wrong.length}) — почему ${pct}%</h3>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Считается только первая попытка ответа на каждый вопрос</p>
+      ${wrongRows}</div>`;
+  } else {
+    wrongs=`<div class="review-section"><p style="text-align:center;color:var(--ok);font-size:16px;padding:12px 0">✓ Все вопросы были отвечены верно с первой попытки!</p></div>`;
+  }
   document.getElementById('result').innerHTML=`<div class="result-card">
     <div style="text-align:center">
       <div class="result-big" id="resBig">0%</div>
-      <div class="result-sub">верно с первой попытки: ${c} из ${t} · время: ${timeStr}</div>
+      <div class="result-sub">Верно с первой попытки: <b>${c} из ${t}</b> · время: ${timeStr}</div>
       ${ach.length?`<div class="ach-row">${ach.map((a,i)=>`<span class="badge" style="animation-delay:${.2+i*.1}s">${a}</span>`).join('')}</div>`:''}
     </div>
     <div class="stats-grid">
@@ -1364,10 +1451,63 @@ function buildCabinet(){
     <div id="discRows">${rows}</div>
     <div class="actions" style="margin-top:20px">
       <button class="btn ghost" id="cabHomeBtn">← К дисциплинам</button>
+      <button class="btn ghost sm" id="cabExportBtn">📤 Экспорт прогресса</button>
+      <button class="btn ghost sm" id="cabImportBtn">📥 Импорт прогресса</button>
       <button class="btn ghost sm" id="cabResetBtn" style="color:var(--bad);border-color:var(--bad)">Сбросить всё</button>
     </div></div>`;
   show('cabinet');
   document.getElementById('cabHomeBtn').onclick=()=>{show('home');buildHome();};
+  document.getElementById('cabExportBtn').onclick=()=>{
+    playClick();
+    const data=JSON.stringify({name:profile.name,stats:profile.stats,sessions:profile.sessions,theme:profile.theme,uid:getUid()});
+    const code=btoa(encodeURIComponent(data));
+    openOverlay(`<div class="modal" style="max-width:480px">
+      <h2>📤 Экспорт прогресса</h2>
+      <p class="sub">Скопируй код. На другом устройстве нажми «Импорт» и вставь его — прогресс подтянется автоматически из облака.</p>
+      <textarea id="exportCode" style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none" readonly>${code}</textarea>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn" style="flex:1;justify-content:center" id="copyCode">📋 Скопировать</button>
+        <button class="modal-x" style="margin:0" onclick="closeOverlay()">Закрыть</button>
+      </div>
+    </div>`);
+    document.getElementById('exportCode').select();
+    document.getElementById('copyCode').onclick=()=>{
+      navigator.clipboard.writeText(code).then(()=>showToast('Код скопирован!')).catch(()=>{
+        document.getElementById('exportCode').select();document.execCommand('copy');showToast('Скопировано!');
+      });
+    };
+  };
+  document.getElementById('cabImportBtn').onclick=()=>{
+    playClick();
+    openOverlay(`<div class="modal" style="max-width:480px">
+      <h2>📥 Импорт прогресса</h2>
+      <p class="sub">Вставь код с другого устройства. UID перенесётся — прогресс автоматически загрузится из облака.</p>
+      <textarea id="importCode" placeholder="Вставь код сюда..." style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn" style="flex:1;justify-content:center" id="doImport">Применить</button>
+        <button class="modal-x" style="margin:0" onclick="closeOverlay()">Отмена</button>
+      </div>
+    </div>`);
+    document.getElementById('doImport').onclick=()=>{
+      const code=(document.getElementById('importCode').value||'').trim();
+      try{
+        const data=JSON.parse(decodeURIComponent(atob(code)));
+        if(!data.stats) throw new Error('bad');
+        // восстанавливаем UID — это ключ для синхронизации с облаком
+        if(data.uid) localStorage.setItem('trainer_uid',data.uid);
+        profile.name=data.name||profile.name;
+        profile.stats=data.stats;
+        profile.sessions=data.sessions||0;
+        if(data.theme) applyTheme(data.theme);
+        save();
+        closeOverlay();
+        buildCabinet();
+        showToast('✅ Прогресс импортирован!');
+        // тянем из облака — там может быть ещё более свежая версия
+        pullFromCloud(()=>{ buildCabinet(); showToast('☁️ Обновлено из облака!'); });
+      }catch(e){ showToast('❌ Неверный код.'); }
+    };
+  };
   document.getElementById('cabResetBtn').onclick=()=>{
     playClick();
     openOverlay(`<div class="modal" style="text-align:center;max-width:380px">
@@ -1435,7 +1575,10 @@ function initGate(){
   document.getElementById('nameIn').onkeydown=e=>{ if(e.key==='Enter') document.getElementById('nameGo').click(); };
   setTimeout(()=>document.getElementById('nameIn').focus(),100);
 }
-function goHome(){ buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!'); }
+function goHome(){
+  buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
+  pullFromCloud(()=>{ buildHome(); owlNeutral('☁️ Прогресс обновлён из облака!'); });
+}
 
 /* ========== WIRE HOME BUTTONS ========== */
 document.getElementById('cabBtn').onclick=()=>{ playClick(); buildCabinet(); };
