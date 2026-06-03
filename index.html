@@ -428,9 +428,17 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   <section id="gate" class="hidden"><div class="gate-wrap">
     <div style="font-size:56px;margin-bottom:8px" id="gateOwl"></div>
     <div class="gate-logo">Тренажёр аккредитации</div>
-    <p class="gate-sub">Как тебя зовут? Прогресс будет сохраняться.</p>
-    <input class="gate-input" id="nameIn" placeholder="Введи имя" maxlength="24" autocomplete="off">
-    <button class="btn gate-btn" id="nameGo">Начать ✦</button>
+    <p class="gate-sub" id="gateSub">Введи email — получишь ссылку для входа</p>
+    <div id="gateEmail">
+      <input class="gate-input" id="emailIn" placeholder="твой@email.ru" type="email" autocomplete="email">
+      <button class="btn gate-btn" id="emailGo">Получить ссылку ✦</button>
+    </div>
+    <div id="gateCheck" class="hidden" style="padding:20px 0">
+      <div style="font-size:48px;margin-bottom:12px">📬</div>
+      <p style="font-size:15px;color:var(--ink);margin:0 0 8px">Письмо отправлено!</p>
+      <p style="font-size:13px;color:var(--muted);margin:0">Проверь почту и кликни на ссылку в письме.<br>Эту вкладку не закрывай.</p>
+      <button class="btn ghost" style="margin-top:18px;width:100%;justify-content:center" id="emailBack">← Другой email</button>
+    </div>
   </div></section>
 
   <section id="home" class="hidden">
@@ -1451,12 +1459,19 @@ function buildCabinet(){
     <div id="discRows">${rows}</div>
     <div class="actions" style="margin-top:20px">
       <button class="btn ghost" id="cabHomeBtn">← К дисциплинам</button>
-      <button class="btn ghost sm" id="cabExportBtn">📤 Экспорт прогресса</button>
-      <button class="btn ghost sm" id="cabImportBtn">📥 Импорт прогресса</button>
+      <button class="btn ghost sm" id="cabExportBtn">📤 Экспорт</button>
+      <button class="btn ghost sm" id="cabImportBtn">📥 Импорт</button>
+      <button class="btn ghost sm" id="cabLogoutBtn">🚪 Выйти</button>
       <button class="btn ghost sm" id="cabResetBtn" style="color:var(--bad);border-color:var(--bad)">Сбросить всё</button>
     </div></div>`;
   show('cabinet');
   document.getElementById('cabHomeBtn').onclick=()=>{show('home');buildHome();};
+  document.getElementById('cabLogoutBtn').onclick=()=>{
+    playClick();
+    localStorage.removeItem('sb_access'); localStorage.removeItem('sb_refresh');
+    _authToken=null;
+    initGate();
+  };
   document.getElementById('cabExportBtn').onclick=()=>{
     playClick();
     const data=JSON.stringify({name:profile.name,stats:profile.stats,sessions:profile.sessions,theme:profile.theme,uid:getUid()});
@@ -1521,10 +1536,12 @@ function buildCabinet(){
     </div>`);
     document.getElementById('confirmReset').onclick=()=>{
       localStorage.removeItem(LS);
+      localStorage.removeItem('sb_access'); localStorage.removeItem('sb_refresh');
+      localStorage.removeItem('trainer_uid');
+      _authToken=null;
       profile={name:'',stats:{},sessions:0,theme:'dark'};
       applyTheme('dark');
       closeOverlay();
-      document.getElementById('nameIn').value='';
       initGate();
     };
     document.getElementById('cancelReset').onclick=closeOverlay;
@@ -1568,13 +1585,90 @@ function showToast(msg){ const t=document.createElement('div');
   t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
 
 /* ========== GATE ========== */
+/* ========== AUTH ========== */
+async function sbSignIn(email){
+  const res=await fetch(`${SB_URL}/auth/v1/otp`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SB_KEY},
+    body:JSON.stringify({email,create_user:true})
+  });
+  return res.ok;
+}
+async function sbGetUser(token){
+  try{
+    const res=await fetch(`${SB_URL}/auth/v1/user`,{
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${token}`}
+    });
+    if(!res.ok) return null;
+    return await res.json();
+  }catch(e){return null;}
+}
+async function sbRefresh(){
+  const r=localStorage.getItem('sb_refresh'); if(!r) return null;
+  try{
+    const res=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{
+      method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},
+      body:JSON.stringify({refresh_token:r})
+    });
+    if(!res.ok) return null;
+    const d=await res.json();
+    if(d.access_token){
+      localStorage.setItem('sb_access',d.access_token);
+      if(d.refresh_token) localStorage.setItem('sb_refresh',d.refresh_token);
+      return d.access_token;
+    }
+  }catch(e){}
+  return null;
+}
+async function getValidToken(){
+  // 1. Проверяем magic link в URL
+  const hash=window.location.hash;
+  if(hash&&hash.includes('access_token')){
+    const p=new URLSearchParams(hash.slice(1));
+    const at=p.get('access_token'),rt=p.get('refresh_token');
+    if(at){
+      localStorage.setItem('sb_access',at);
+      if(rt) localStorage.setItem('sb_refresh',rt);
+      history.replaceState(null,'',window.location.pathname+window.location.search);
+      return at;
+    }
+  }
+  // 2. Используем сохранённый токен
+  let t=localStorage.getItem('sb_access');
+  if(t){ const u=await sbGetUser(t); if(u) return t; }
+  // 3. Обновляем через refresh token
+  return await sbRefresh();
+}
+let _authToken=null;
+
 function initGate(){
   document.getElementById('gateOwl').innerHTML=buildOwl(56);
   show('gate');
-  document.getElementById('nameGo').onclick=()=>{ playClick(); const n=document.getElementById('nameIn').value.trim()||'Студент'; profile.name=n; save(); goHome(); };
-  document.getElementById('nameIn').onkeydown=e=>{ if(e.key==='Enter') document.getElementById('nameGo').click(); };
-  setTimeout(()=>document.getElementById('nameIn').focus(),100);
+  const emailIn=document.getElementById('emailIn');
+  const emailGo=document.getElementById('emailGo');
+  emailGo.onclick=async()=>{
+    playClick();
+    const email=(emailIn.value||'').trim();
+    if(!email||!email.includes('@')||!email.includes('.')){ showToast('Введи корректный email'); return; }
+    emailGo.disabled=true; emailGo.textContent='Отправляем...';
+    const ok=await sbSignIn(email);
+    if(ok){
+      document.getElementById('gateEmail').classList.add('hidden');
+      document.getElementById('gateCheck').classList.remove('hidden');
+    } else {
+      emailGo.disabled=false; emailGo.textContent='Получить ссылку ✦';
+      showToast('Ошибка отправки. Проверь email и попробуй снова.');
+    }
+  };
+  emailIn.onkeydown=e=>{ if(e.key==='Enter') emailGo.click(); };
+  document.getElementById('emailBack').onclick=()=>{
+    document.getElementById('gateEmail').classList.remove('hidden');
+    document.getElementById('gateCheck').classList.add('hidden');
+    emailGo.disabled=false; emailGo.textContent='Получить ссылку ✦';
+  };
+  setTimeout(()=>emailIn.focus(),100);
 }
+
 function goHome(){
   buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
   pullFromCloud(()=>{ buildHome(); owlNeutral('☁️ Прогресс обновлён из облака!'); });
@@ -1589,13 +1683,28 @@ document.getElementById('soundBtn').onclick=()=>{
   document.getElementById('soundBtn').textContent = profile.soundEnabled===false ? '🔇' : '🔊';
   save();
 };
-// init sound button state
 document.getElementById('soundBtn').textContent = profile.soundEnabled===false ? '🔇' : '🔊';
 document.getElementById('owlSvg').addEventListener('click',()=>{ playClick(); const msgs=['Ухуху! Ты справишься!','Совы мудрые. Ты тоже!','Давай учиться!','Мне нравится твой прогресс!','🦉 Учись усердно!']; owlMsg(msgs[Math.floor(Math.random()*msgs.length)]); document.getElementById('owlSvg').style.animation='owlBounce .6s ease'; setTimeout(()=>document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite',700); });
 
 /* ========== BOOT ========== */
 document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\/svg>/s)?.[1]||'';
-if(profile.name){ goHome(); } else { initGate(); }
+(async()=>{
+  const token=await getValidToken();
+  if(token){
+    const user=await sbGetUser(token);
+    if(user){
+      _authToken=token;
+      localStorage.setItem('trainer_uid',user.id);
+      if(!profile.name) profile.name=user.email.split('@')[0];
+      save();
+      await pullFromCloud();
+      buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
+      return;
+    }
+  }
+  initGate();
+})();
+
 </script>
 </body>
 </html>
