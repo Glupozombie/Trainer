@@ -428,16 +428,16 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   <section id="gate" class="hidden"><div class="gate-wrap">
     <div style="font-size:56px;margin-bottom:8px" id="gateOwl"></div>
     <div class="gate-logo">Тренажёр аккредитации</div>
-    <p class="gate-sub" id="gateSub">Введи email — получишь ссылку для входа</p>
+    <p class="gate-sub">Введи email — получишь код для входа</p>
     <div id="gateEmail">
       <input class="gate-input" id="emailIn" placeholder="твой@email.ru" type="email" autocomplete="email">
-      <button class="btn gate-btn" id="emailGo">Получить ссылку ✦</button>
+      <button class="btn gate-btn" id="emailGo">Получить код ✦</button>
     </div>
-    <div id="gateCheck" class="hidden" style="padding:20px 0">
-      <div style="font-size:48px;margin-bottom:12px">📬</div>
-      <p style="font-size:15px;color:var(--ink);margin:0 0 8px">Письмо отправлено!</p>
-      <p style="font-size:13px;color:var(--muted);margin:0">Проверь почту и кликни на ссылку в письме.<br>Эту вкладку не закрывай.</p>
-      <button class="btn ghost" style="margin-top:18px;width:100%;justify-content:center" id="emailBack">← Другой email</button>
+    <div id="gateCode" class="hidden">
+      <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
+      <input class="gate-input" id="codeIn" placeholder="Введи 6-значный код" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:24px;letter-spacing:8px">
+      <button class="btn gate-btn" id="codeGo">Войти →</button>
+      <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack">← Другой email</button>
     </div>
   </div></section>
 
@@ -1586,18 +1586,26 @@ function showToast(msg){ const t=document.createElement('div');
 
 /* ========== GATE ========== */
 /* ========== AUTH ========== */
-async function sbSignIn(email){
+async function sbSendOtp(email){
   const res=await fetch(`${SB_URL}/auth/v1/otp`,{
     method:'POST',
     headers:{'Content-Type':'application/json','apikey':SB_KEY},
-    body:JSON.stringify({
-      email,
-      create_user:true,
-      options:{emailRedirectTo:'https://glupozombie.github.io/Trainer/'}
-    })
+    body:JSON.stringify({email,create_user:true})
   });
+  if(!res.ok) console.warn('OTP send error:',res.status,await res.text());
   return res.ok;
 }
+
+async function sbVerifyOtp(email,token){
+  const res=await fetch(`${SB_URL}/auth/v1/verify`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SB_KEY},
+    body:JSON.stringify({email,token,type:'email'})
+  });
+  if(!res.ok){ console.warn('OTP verify error:',res.status,await res.text()); return null; }
+  return await res.json();
+}
+
 async function sbGetUser(token){
   try{
     const res=await fetch(`${SB_URL}/auth/v1/user`,{
@@ -1607,6 +1615,7 @@ async function sbGetUser(token){
     return await res.json();
   }catch(e){return null;}
 }
+
 async function sbRefresh(){
   const r=localStorage.getItem('sb_refresh'); if(!r) return null;
   try{
@@ -1624,25 +1633,13 @@ async function sbRefresh(){
   }catch(e){}
   return null;
 }
+
 async function getValidToken(){
-  // 1. Проверяем magic link в URL
-  const hash=window.location.hash;
-  if(hash&&hash.includes('access_token')){
-    const p=new URLSearchParams(hash.slice(1));
-    const at=p.get('access_token'),rt=p.get('refresh_token');
-    if(at){
-      localStorage.setItem('sb_access',at);
-      if(rt) localStorage.setItem('sb_refresh',rt);
-      history.replaceState(null,'',window.location.pathname+window.location.search);
-      return at;
-    }
-  }
-  // 2. Используем сохранённый токен
   let t=localStorage.getItem('sb_access');
   if(t){ const u=await sbGetUser(t); if(u) return t; }
-  // 3. Обновляем через refresh token
   return await sbRefresh();
 }
+
 let _authToken=null;
 
 function initGate(){
@@ -1650,25 +1647,57 @@ function initGate(){
   show('gate');
   const emailIn=document.getElementById('emailIn');
   const emailGo=document.getElementById('emailGo');
+  const codeIn=document.getElementById('codeIn');
+  const codeGo=document.getElementById('codeGo');
+  let _email='';
+
   emailGo.onclick=async()=>{
     playClick();
     const email=(emailIn.value||'').trim();
     if(!email||!email.includes('@')||!email.includes('.')){ showToast('Введи корректный email'); return; }
     emailGo.disabled=true; emailGo.textContent='Отправляем...';
-    const ok=await sbSignIn(email);
+    const ok=await sbSendOtp(email);
     if(ok){
+      _email=email;
+      document.getElementById('emailShown').textContent=email;
       document.getElementById('gateEmail').classList.add('hidden');
-      document.getElementById('gateCheck').classList.remove('hidden');
+      document.getElementById('gateCode').classList.remove('hidden');
+      setTimeout(()=>codeIn.focus(),100);
     } else {
-      emailGo.disabled=false; emailGo.textContent='Получить ссылку ✦';
-      showToast('Ошибка отправки. Проверь email и попробуй снова.');
+      emailGo.disabled=false; emailGo.textContent='Получить код ✦';
+      showToast('Ошибка отправки. Попробуй ещё раз.');
     }
   };
+
+  codeGo.onclick=async()=>{
+    playClick();
+    const code=(codeIn.value||'').trim();
+    if(code.length!==6){ showToast('Код — 6 цифр'); return; }
+    codeGo.disabled=true; codeGo.textContent='Проверяем...';
+    const data=await sbVerifyOtp(_email,code);
+    if(data&&data.access_token){
+      localStorage.setItem('sb_access',data.access_token);
+      if(data.refresh_token) localStorage.setItem('sb_refresh',data.refresh_token);
+      _authToken=data.access_token;
+      localStorage.setItem('trainer_uid',data.user.id);
+      if(!profile.name) profile.name=_email.split('@')[0];
+      save();
+      await pullFromCloud();
+      buildHome(); show('home'); owlNeutral('Добро пожаловать! 🦉');
+    } else {
+      codeGo.disabled=false; codeGo.textContent='Войти →';
+      showToast('Неверный код. Попробуй ещё раз.');
+    }
+  };
+
+  codeIn.onkeydown=e=>{ if(e.key==='Enter') codeGo.click(); };
   emailIn.onkeydown=e=>{ if(e.key==='Enter') emailGo.click(); };
+
   document.getElementById('emailBack').onclick=()=>{
     document.getElementById('gateEmail').classList.remove('hidden');
-    document.getElementById('gateCheck').classList.add('hidden');
-    emailGo.disabled=false; emailGo.textContent='Получить ссылку ✦';
+    document.getElementById('gateCode').classList.add('hidden');
+    emailGo.disabled=false; emailGo.textContent='Получить код ✦';
+    codeIn.value='';
   };
   setTimeout(()=>emailIn.focus(),100);
 }
