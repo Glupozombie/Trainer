@@ -1590,7 +1590,11 @@ async function sbSignIn(email){
   const res=await fetch(`${SB_URL}/auth/v1/otp`,{
     method:'POST',
     headers:{'Content-Type':'application/json','apikey':SB_KEY},
-    body:JSON.stringify({email,create_user:true})
+    body:JSON.stringify({
+      email,
+      create_user:true,
+      options:{emailRedirectTo:'https://glupozombie.github.io/Trainer/'}
+    })
   });
   return res.ok;
 }
