@@ -435,7 +435,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
     </div>
     <div id="gateCode" class="hidden">
       <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
-      <input class="gate-input" id="codeIn" placeholder="Введи 6-значный код" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:24px;letter-spacing:8px">
+      <input class="gate-input" id="codeIn" placeholder="Введи код из письма" type="text" maxlength="8" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:22px;letter-spacing:4px">
       <button class="btn gate-btn" id="codeGo">Войти →</button>
       <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack">← Другой email</button>
     </div>
@@ -1672,7 +1672,7 @@ function initGate(){
   codeGo.onclick=async()=>{
     playClick();
     const code=(codeIn.value||'').trim();
-    if(code.length!==6){ showToast('Код — 6 цифр'); return; }
+    if(code.length<6||code.length>8){ showToast('Введи код из письма полностью'); return; }
     codeGo.disabled=true; codeGo.textContent='Проверяем...';
     const data=await sbVerifyOtp(_email,code);
     if(data&&data.access_token){
