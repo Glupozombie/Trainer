@@ -1636,7 +1636,17 @@ async function sbRefresh(){
 
 async function getValidToken(){
   let t=localStorage.getItem('sb_access');
-  if(t){ const u=await sbGetUser(t); if(u) return t; }
+  if(t){
+    // проверяем не протух ли токен по exp полю
+    try{
+      const payload=JSON.parse(atob(t.split('.')[1]));
+      const expiresSoon=payload.exp<(Date.now()/1000)+60; // протух или истекает через минуту
+      if(!expiresSoon) return t;
+    }catch(e){}
+    // токен протух — обновляем
+    const refreshed=await sbRefresh();
+    if(refreshed) return refreshed;
+  }
   return await sbRefresh();
 }
 
