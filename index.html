@@ -460,6 +460,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
     <div id="gateEmail">
       <input class="gate-input" id="emailIn" placeholder="твой@email.ru" type="email" autocomplete="email">
       <button class="btn gate-btn" id="emailGo">Получить код</button>
+      <button class="btn ghost" style="margin-top:8px;width:100%;justify-content:center;font-size:13px" id="haveCodeBtn">У меня уже есть код</button>
     </div>
     <div id="gateCode" class="hidden">
       <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
@@ -1005,6 +1006,7 @@ function clearActiveSession(){
   if(profile.activeSessions) delete profile.activeSessions[key];
   delete profile.activeSession;
   save();
+  pushToCloud(); // синхронизируем удаление сессии в облако
 }
 
 function restoreSession(state){
@@ -1566,12 +1568,19 @@ function buildCabinet(){
         <button class="btn ghost" style="flex:1;justify-content:center" id="cancelReset">Отмена</button>
       </div>
     </div>`);
-    document.getElementById('confirmReset').onclick=()=>{
+    document.getElementById('confirmReset').onclick=async()=>{
+      // удаляем запись из облака
+      if(_authToken && getUid()!=='anonymous'){
+        fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}`,{
+          method:'DELETE',
+          headers:{'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`}
+        }).catch(()=>{});
+      }
       localStorage.removeItem(LS);
       localStorage.removeItem('sb_access'); localStorage.removeItem('sb_refresh');
       localStorage.removeItem('trainer_uid');
       _authToken=null;
-      profile={name:'',stats:{},sessions:0,theme:'dark'};
+      profile={name:'',stats:{},sessions:0,theme:'dark',activeSessions:{}};
       applyTheme('dark');
       closeOverlay();
       initGate();
@@ -1772,14 +1781,31 @@ async function getValidToken(){
 
 let _authToken=null;
 
+let _gateEmail = '';
+
 function initGate(){
   document.getElementById('gateOwl').innerHTML=buildOwl(56);
+  document.getElementById('gateEmail').classList.remove('hidden');
+  document.getElementById('gateCode').classList.add('hidden');
+  document.getElementById('emailIn').value='';
+  document.getElementById('codeIn').value='';
+  document.getElementById('emailGo').disabled=false;
+  document.getElementById('emailGo').textContent='Получить код';
+  document.getElementById('codeGo').disabled=false;
+  document.getElementById('codeGo').textContent='Войти';
   show('gate');
   const emailIn=document.getElementById('emailIn');
   const emailGo=document.getElementById('emailGo');
   const codeIn=document.getElementById('codeIn');
   const codeGo=document.getElementById('codeGo');
-  let _email='';
+
+  const showCodeForm=(email)=>{
+    _gateEmail=email;
+    document.getElementById('emailShown').textContent=email;
+    document.getElementById('gateEmail').classList.add('hidden');
+    document.getElementById('gateCode').classList.remove('hidden');
+    setTimeout(()=>codeIn.focus(),100);
+  };
 
   emailGo.onclick=async()=>{
     playClick();
@@ -1788,29 +1814,33 @@ function initGate(){
     emailGo.disabled=true; emailGo.textContent='Отправляем...';
     const ok=await sbSendOtp(email);
     if(ok){
-      _email=email;
-      document.getElementById('emailShown').textContent=email;
-      document.getElementById('gateEmail').classList.add('hidden');
-      document.getElementById('gateCode').classList.remove('hidden');
-      setTimeout(()=>codeIn.focus(),100);
+      showCodeForm(email);
     } else {
       emailGo.disabled=false; emailGo.textContent='Получить код';
       showToast('Ошибка отправки. Попробуй ещё раз.');
     }
   };
 
+  document.getElementById('haveCodeBtn').onclick=()=>{
+    playClick();
+    const email=(emailIn.value||'').trim();
+    if(!email||!email.includes('@')||!email.includes('.')){ showToast('Сначала введи email'); return; }
+    showCodeForm(email);
+  };
+
   codeGo.onclick=async()=>{
     playClick();
     const code=(codeIn.value||'').trim();
     if(code.length<6||code.length>8){ showToast('Введи код из письма полностью'); return; }
+    if(!_gateEmail){ showToast('Сначала введи email'); document.getElementById('emailBack').click(); return; }
     codeGo.disabled=true; codeGo.textContent='Проверяем...';
-    const data=await sbVerifyOtp(_email,code);
+    const data=await sbVerifyOtp(_gateEmail,code);
     if(data&&data.access_token){
       localStorage.setItem('sb_access',data.access_token);
       if(data.refresh_token) localStorage.setItem('sb_refresh',data.refresh_token);
       _authToken=data.access_token;
       localStorage.setItem('trainer_uid',data.user.id);
-      if(!profile.name) profile.name=_email.split('@')[0];
+      if(!profile.name) profile.name=_gateEmail.split('@')[0];
       save();
       await pullFromCloud();
       buildHome(); show('home'); owlNeutral('Добро пожаловать!');
