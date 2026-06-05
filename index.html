@@ -432,6 +432,12 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
       <input class="gate-input" id="emailIn" placeholder="твой@email.ru" type="email" autocomplete="email">
       <button class="btn gate-btn" id="emailGo">Получить код</button>
       <button class="btn ghost" style="margin-top:8px;width:100%;justify-content:center;font-size:13px" id="haveCodeBtn">У меня уже есть код</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--muted)">
+        <div style="flex:1;height:1px;background:var(--line)"></div>
+        <span style="font-size:12px">или</span>
+        <div style="flex:1;height:1px;background:var(--line)"></div>
+      </div>
+      <button class="btn ghost" style="margin-top:12px;width:100%;justify-content:center;font-size:13px;color:var(--muted)" id="guestBtn">Войти как гость</button>
     </div>
     <div id="gateCode" class="hidden">
       <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
@@ -510,6 +516,28 @@ function playComplete(){ [0,100,200,320,480].forEach((t,i)=>setTimeout(()=>beep(
 function load(){ try{const d=JSON.parse(localStorage.getItem(LS)); return d||null;}catch(e){return null;} }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(profile));}catch(e){} }
 let profile = load() || {name:'',stats:{},sessions:0,theme:'dark'};
+
+/* ========== TELEGRAM LOGGING ========== */
+const TG_BOT='8595346196:AAEXzdhtaiGVB-3u13iVbqraqgNufDzdx3k';
+const TG_CHAT='1017146722';
+function tgLog(category,message,extra){
+  const icons={auth:'🔐',sync:'☁️',error:'🔴',otp:'📧',guest:'👤'};
+  const icon=icons[category]||'📋';
+  const time=new Date().toLocaleString('ru',{timeZone:'Europe/Moscow'});
+  const uid=typeof getUid==='function'?getUid().slice(0,8):'unknown';
+  const lines=[
+    icon+' *'+category.toUpperCase()+'*',
+    '`'+String(message).slice(0,400)+'`',
+    extra?'```\n'+JSON.stringify(extra,null,2).slice(0,500)+'\n```':'',
+    '──────────────',
+    '👤 `'+uid+'`',
+    '🕐 '+time
+  ].filter(Boolean).join('\n');
+  fetch('https://api.telegram.org/bot'+TG_BOT+'/sendMessage',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({chat_id:TG_CHAT,text:lines,parse_mode:'Markdown'})
+  }).catch(()=>{});
+}
 
 /* ========== DISC SVG ILLUSTRATIONS ========== */
 const DISC_SVG = {
@@ -654,8 +682,12 @@ async function pushToCloud(){
       })
     });
     setSyncIcon(res.ok?'ok':'err');
-    if(!res.ok) console.warn('Supabase push:',res.status,await res.text());
-  }catch(e){setSyncIcon('err');console.warn('Supabase push:',e);}
+    if(!res.ok){
+      const err=await res.clone().text();
+      console.warn('Supabase push:',res.status,err);
+      tgLog('sync','Ошибка сохранения в облако',{status:res.status,error:err});
+    }
+  }catch(e){setSyncIcon('err');console.warn('Supabase push:',e);tgLog('sync','push exception',{msg:String(e)});}
 }
 async function pullFromCloud(onLoaded){
   if(!_authToken){setSyncIcon('err');return;}
@@ -692,7 +724,7 @@ async function pullFromCloud(onLoaded){
       if(onLoaded) onLoaded();
     }
     setSyncIcon('ok');
-  }catch(e){setSyncIcon('err');console.warn('Supabase pull:',e);}
+  }catch(e){setSyncIcon('err');console.warn('Supabase pull:',e);tgLog('sync','pull exception',{msg:String(e)});}
 }
 
 /* ========== OWL SVG ========== */
@@ -1879,7 +1911,13 @@ async function sbSendOtp(email){
     headers:{'Content-Type':'application/json','apikey':SB_KEY},
     body:JSON.stringify({email,create_user:true})
   });
-  if(!res.ok) console.warn('OTP send error:',res.status,await res.text());
+  if(!res.ok){
+    const err=await res.clone().text();
+    console.warn('OTP send error:',res.status,err);
+    tgLog('otp','Ошибка отправки кода',{email,status:res.status,error:err});
+  } else {
+    tgLog('otp','Код запрошен',{email});
+  }
   return res.ok;
 }
 
@@ -1889,8 +1927,15 @@ async function sbVerifyOtp(email,token){
     headers:{'Content-Type':'application/json','apikey':SB_KEY},
     body:JSON.stringify({email,token,type:'email'})
   });
-  if(!res.ok){ console.warn('OTP verify error:',res.status,await res.text()); return null; }
-  return await res.json();
+  if(!res.ok){
+    const err=await res.clone().text();
+    console.warn('OTP verify error:',res.status,err);
+    tgLog('auth','Неверный код входа',{email,status:res.status,error:err});
+    return null;
+  }
+  const data=await res.json();
+  tgLog('auth','Успешный вход',{email});
+  return data;
 }
 
 async function sbGetUser(token){
@@ -2014,6 +2059,26 @@ function initGate(){
 
   codeIn.onkeydown=e=>{ if(e.key==='Enter') codeGo.click(); };
   emailIn.onkeydown=e=>{ if(e.key==='Enter') emailGo.click(); };
+
+  document.getElementById('guestBtn').onclick=()=>{
+    playClick();
+    tgLog('guest','Вход как гость',{});
+    openOverlay(`<div class="modal" style="max-width:380px;text-align:center">
+      <h2>Вход как гость</h2>
+      <p class="sub" style="color:var(--bad)">Прогресс не сохраняется между сессиями. При закрытии вкладки всё будет потеряно.</p>
+      <p class="sub">Для сохранения прогресса войди через email.</p>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn" style="flex:1;justify-content:center" id="guestConfirm">Продолжить</button>
+        <button class="btn ghost" style="flex:1;justify-content:center" onclick="closeOverlay()">Отмена</button>
+      </div>
+    </div>`);
+    document.getElementById('guestConfirm').onclick=()=>{
+      closeOverlay();
+      profile={name:'Гость',stats:{},sessions:0,theme:'dark',activeSessions:{}};
+      save();
+      buildHome(); show('home'); owlNeutral('Добро пожаловать!');
+    };
+  };
 
   document.getElementById('emailBack').onclick=()=>{
     document.getElementById('gateEmail').classList.remove('hidden');
