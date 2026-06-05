@@ -334,6 +334,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .review-section h3{font-family:var(--serif);font-size:17px;margin:0 0 12px}
 .rev-item{background:var(--bg2);border:1.5px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;animation:fadeUp .3s ease backwards}
 .rev-q{font-size:14px;margin-bottom:5px;white-space:pre-wrap;word-break:break-word}
+.rev-ua{font-size:13px;color:var(--muted);margin-bottom:3px;white-space:pre-wrap;word-break:break-word}
 .rev-a{font-size:13px;color:var(--ok);white-space:pre-wrap;word-break:break-word}
 
 /* ============ CABINET ============ */
@@ -970,17 +971,16 @@ function doSkip(q,pid){
 }
 
 /* ========== CHECK ========== */
-function record(q,pid,result){
+function record(q,pid,result,userAnswer){
   // result: 'correct'|'wrong'|'partial'|'skipped'|'hinted'
   const first=!session.firstSeen.has(q._id);
   if(first){
     session.firstSeen.add(q._id);
     if(result==='correct') session.firstCorrect.add(q._id);
-    else{ session.wrong.push(q); session.wrongIds.push(q._id); }
+    else{ session.wrong.push({...q,_userAnswer:userAnswer}); session.wrongIds.push(q._id); }
   }
   if(session.mode==='hard'&&result!=='correct') session.queue.push(pid);
-  session.history.push({pid,result});
-  // auto-save session state for resume
+  session.history.push({pid,result,userAnswer});
   autoSaveSession();
   updateTop(); updateNav();
   checkMilestone();
@@ -1076,8 +1076,9 @@ function gradeMC(q,pid,hinted){
   document.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));
   if(hinted&&applyHinted(ok,q,pid)) return;
   const corr=q._opts.filter(o=>o.correct).map(o=>o.text).join('\n');
+  const userAns=q._opts.filter((_,i)=>sel.includes(i)).map(o=>o.text).join(', ');
   if(ok){showFb('correct','✓ Верно!',null);}else{showFb('wrong','✗ Неверно',corr);}
-  record(q,pid,ok?'correct':'wrong'); finishCheck(ok?'correct':'wrong');
+  record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 function gradeShort(q,pid,hinted){
   const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast('Введи ответ!');return;}
@@ -1090,7 +1091,7 @@ function gradeShort(q,pid,hinted){
   else if(partial){showFb('partial','〜 Частично верно (проверь написание)',corr);}
   else{showFb('wrong','✗ Неверно',corr);}
   const res=exact?'correct':partial?'partial':'wrong';
-  record(q,pid,exact?'correct':'wrong'); finishCheck(res);
+  record(q,pid,exact?'correct':'wrong',v); finishCheck(res);
 }
 function gradeSelf(q,pid,hinted){
   const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast('Введи ответ!');return;}
@@ -1108,23 +1109,22 @@ function gradeSelf(q,pid,hinted){
     if(hinted){
       playPartial();
       applyHinted(true,q,pid);
-      document.querySelector('.self-grade').innerHTML='<span style="color:var(--partial);font-size:13px">👁 Засчитано как неверное (подсмотрел)</span>';
+      document.querySelector('.self-grade').innerHTML='<span style="color:var(--partial);font-size:13px">Засчитано как неверное (подсмотрел)</span>';
     } else {
       playCorrect();
-      record(q,pid,'correct'); finishCheck('correct'); showFb('correct','✓ Засчитано!',null);
+      record(q,pid,'correct',v); finishCheck('correct'); showFb('correct','✓ Засчитано!',null);
     }
     document.getElementById('skipBtn')?.classList.add('hidden');
     document.getElementById('nextBtn').classList.remove('hidden');
   };
   document.getElementById('sgP').onclick=()=>{
-    // «Почти верно» — засчитывается в ошибки, но с жёлтой анимацией
-    playPartial(); record(q,pid,'wrong'); finishCheck('partial');
+    playPartial(); record(q,pid,'wrong',v+' (почти верно)'); finishCheck('partial');
     showFb('partial','〜 Почти верно — отправлено на доработку',q.answer);
     document.getElementById('nextBtn').classList.remove('hidden');
     document.getElementById('skipBtn')?.classList.add('hidden');
   };
   document.getElementById('sgN').onclick=()=>{
-    playWrong(); record(q,pid,'wrong'); finishCheck('wrong');
+    playWrong(); record(q,pid,'wrong',v); finishCheck('wrong');
     showFb('wrong','✗ Отмечено как неверное',q.answer);
     document.getElementById('nextBtn').classList.remove('hidden');
     document.getElementById('skipBtn')?.classList.add('hidden');
@@ -1145,8 +1145,9 @@ function gradeMatch(q,pid,hinted){
   });
   if(hinted&&applyHinted(ok,q,pid)) return;
   const corr=q.pairs.map(p=>`${stripTags(p.left)||'(формула)'} → ${stripTags(p.right)||'(формула)'}`).join('\n');
+  const userAns=sels.map(s=>{const i=+s.dataset.i;const chosen=allRights[+s.value];return `${stripTags(q.pairs[i].left)||'(формула)'} → ${stripTags(chosen)||'(формула)'}`;}).join('\n');
   if(ok)showFb('correct','✓ Верно!',null);else showFb('wrong','✗ Неверно',corr);
-  record(q,pid,ok?'correct':'wrong'); finishCheck(ok?'correct':'wrong');
+  record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 function gradeOrder(q,pid,hinted){
   const cur=[...document.querySelectorAll('#orderList .order-item')].map(e=>decodeURIComponent(e.dataset.t));
@@ -1155,8 +1156,9 @@ function gradeOrder(q,pid,hinted){
     if(t===q.ordered[i])el.classList.add('correct-order');else{el.classList.add('wrong-order');ok=false;}});
   if(hinted&&applyHinted(ok,q,pid)) return;
   const corr=q.ordered.map((t,i)=>`${i+1}. ${t}`).join('\n');
+  const userAns=cur.map((t,i)=>`${i+1}. ${t}`).join('\n');
   if(ok)showFb('correct','✓ Верно!',null);else showFb('wrong','✗ Неверно',corr);
-  record(q,pid,ok?'correct':'wrong'); finishCheck(ok?'correct':'wrong');
+  record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 
 /* ========== FINISH ========== */
@@ -1174,7 +1176,21 @@ function finishSession(){
   st.best=Math.max(st.best||0,pct);
   st.lastWrong=session.wrongIds.slice();
   if(!st.attempts) st.attempts=[];
-  st.attempts.push({pct,correct:c,total:t,time:timeStr,date:new Date().toLocaleDateString('ru'),wrongIds:session.wrongIds.slice()});
+  st.attempts.push({
+    pct, correct:c, total:t, time:timeStr,
+    date:new Date().toLocaleDateString('ru'),
+    wrongIds:session.wrongIds.slice(),
+    // сохраняем все ответы: {pid, result, userAnswer}
+    answers:session.history
+      .filter((h,i,arr)=>arr.findIndex(x=>x.pid===h.pid)===i) // уникальные pid
+      .map(h=>({
+        pid:h.pid,
+        qid:session.pool[h.pid]?._id,
+        result:h.result,
+        userAnswer:h.userAnswer||null,
+        correct:correctOf(session.pool[h.pid])
+      }))
+  });
   if(st.attempts.length>10) st.attempts=st.attempts.slice(-10);
   save();
   playComplete();
@@ -1183,10 +1199,10 @@ function finishSession(){
 }
 function buildResult(pct,c,t,timeStr,st){
   const ach=[];
-  if(pct>=90)ach.push('Дисциплина сдана ≥90%');
-  if(pct===100)ach.push('Идеально! 100%');
-  if(c===0&&t>0)ach.push('Нужно больше практики');
-  if(t>=50)ach.push('Большая сессия 50+ вопросов');
+  if(pct>=90) ach.push('Сдано ≥90%');
+  if(pct===100) ach.push('Идеально! 100%');
+  if(c===0&&t>0) ach.push('Нужно больше практики');
+  if(t>=50) ach.push('Большая сессия 50+ вопросов');
   const attempts=st.attempts||[];
   const chartBars=attempts.map((a,i)=>{
     const h=Math.max(4,a.pct); const isCur=(i===attempts.length-1);
@@ -1194,19 +1210,29 @@ function buildResult(pct,c,t,timeStr,st){
       <div class="chart-bar${isCur?' current':''}" style="height:0px" data-h="${h}px"></div>
       <div class="chart-lbl">${a.date}</div></div>`;
   }).join('');
-  // Разбор ошибок — всегда показываем, даже если 0
-  let wrongs='';
-  if(session.wrong.length){
-    const wrongRows=session.wrong.map((q,i)=>`<div class="rev-item" style="animation-delay:${i*.03}s">
-      <div class="rev-q"><span style="color:var(--bad);font-weight:600;margin-right:6px">✗</span>${stripTags(q.question).slice(0,160)}</div>
-      <div class="rev-a">Правильно: ${correctOf(q).slice(0,120)}</div>
-    </div>`).join('');
-    wrongs=`<div class="review-section"><h3>Неверные ответы (${session.wrong.length}) — почему ${pct}%</h3>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Считается только первая попытка ответа на каждый вопрос</p>
-      ${wrongRows}</div>`;
-  } else {
-    wrongs=`<div class="review-section"><p style="text-align:center;color:var(--ok);font-size:16px;padding:12px 0">✓ Все вопросы были отвечены верно с первой попытки!</p></div>`;
-  }
+
+  // Полный разбор — все вопросы с ответами пользователя
+  const allAnswers=session.history.filter((h,i,arr)=>arr.findIndex(x=>x.pid===h.pid)===i);
+  const answerRows=allAnswers.map((h,i)=>{
+    const q=session.pool[h.pid]; if(!q) return '';
+    const isCorrect=h.result==='correct';
+    const isPartial=h.result==='partial';
+    const color=isCorrect?'var(--ok)':isPartial?'var(--partial)':'var(--bad)';
+    const mark=isCorrect?'✓':isPartial?'~':'✗';
+    const userAns=h.userAnswer?`<div class="rev-ua">Ваш ответ: <span style="color:${color}">${String(h.userAnswer).slice(0,200)}</span></div>`:'';
+    const correctAns=!isCorrect?`<div class="rev-a">Верно: ${correctOf(q).slice(0,200)}</div>`:'';
+    return `<div class="rev-item" style="animation-delay:${i*.02}s">
+      <div class="rev-q"><span style="color:${color};font-weight:700;margin-right:6px">${mark}</span>${stripTags(q.question).slice(0,180)}</div>
+      ${userAns}${correctAns}
+    </div>`;
+  }).join('');
+
+  const reviewSection=`<div class="review-section">
+    <h3>Разбор теста — ${c} верно из ${t}</h3>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Считается первая попытка ответа на каждый вопрос</p>
+    ${answerRows||'<p style="color:var(--muted);text-align:center">Нет данных</p>'}
+  </div>`;
+
   document.getElementById('result').innerHTML=`<div class="result-card">
     <div style="text-align:center">
       <div class="result-big" id="resBig">0%</div>
@@ -1226,7 +1252,7 @@ function buildResult(pct,c,t,timeStr,st){
       <button class="btn ghost" id="homeBtnR">К дисциплинам</button>
       <button class="btn ghost" id="cabBtnR">Кабинет</button>
     </div>
-    ${wrongs}
+    ${reviewSection}
   </div>`;
   show('result');
   // count-up
@@ -1447,18 +1473,38 @@ function reviewAttempt(disc, attIdx){
   const st=profile.stats[disc||'__all__'];
   const att=st?.attempts?.[attIdx];
   if(!att){ showToast('Данные попытки не найдены'); return; }
-  const wrongIds=new Set(att.wrongIds||[]);
-  const wrongQs=wrongIds.size
-    ? DATA.questions.filter((_,i)=>wrongIds.has(i))
-    : [];
-  const n=att.correct; const t=att.total; const pct=att.pct;
+  const pct=att.pct, n=att.correct, t=att.total;
   const cls=pct>=80?'hi':pct>=50?'mid':'lo';
   const attNum=attIdx+1;
-  const wrongRows=wrongQs.slice(0,20).map(q=>`
-    <div class="rev-item">
-      <div class="rev-q">${stripTags(q.question).slice(0,120)}</div>
-      <div class="rev-a">${correctOf(q).slice(0,100)}</div>
-    </div>`).join('');
+
+  // Если есть полные ответы — показываем их
+  let answerRows='';
+  if(att.answers&&att.answers.length){
+    answerRows=att.answers.map((a,i)=>{
+      const q=DATA.questions[a.qid];
+      if(!q) return '';
+      const isCorrect=a.result==='correct';
+      const isPartial=a.result==='partial';
+      const color=isCorrect?'var(--ok)':isPartial?'var(--partial)':'var(--bad)';
+      const mark=isCorrect?'✓':isPartial?'~':'✗';
+      const userAns=a.userAnswer?`<div class="rev-ua">Ваш ответ: <span style="color:${color}">${String(a.userAnswer).slice(0,200)}</span></div>`:'';
+      const correctAns=!isCorrect?`<div class="rev-a">Верно: ${(a.correct||correctOf(q)).slice(0,200)}</div>`:'';
+      return `<div class="rev-item" style="animation-delay:${i*.02}s">
+        <div class="rev-q"><span style="color:${color};font-weight:700;margin-right:6px">${mark}</span>${stripTags(q.question).slice(0,180)}</div>
+        ${userAns}${correctAns}
+      </div>`;
+    }).join('');
+  } else {
+    // Старый формат — только неверные
+    const wrongIds=new Set(att.wrongIds||[]);
+    const wrongQs=DATA.questions.filter((_,i)=>wrongIds.has(i));
+    answerRows=wrongQs.slice(0,20).map(q=>`
+      <div class="rev-item">
+        <div class="rev-q"><span style="color:var(--bad);font-weight:700;margin-right:6px">✗</span>${stripTags(q.question).slice(0,180)}</div>
+        <div class="rev-a">Верно: ${correctOf(q).slice(0,200)}</div>
+      </div>`).join('');
+  }
+
   openOverlay(`<div class="modal" style="max-width:560px">
     <h2>Попытка ${attNum} — ${disc||'Все дисциплины'}</h2>
     <div class="stats-grid" style="margin:14px 0">
@@ -1467,9 +1513,12 @@ function reviewAttempt(disc, attIdx){
       <div class="stat-cell"><div class="stat-num">${att.time||'—'}</div><div class="stat-lbl">Время</div></div>
       <div class="stat-cell"><div class="stat-num date-num">${att.date}</div><div class="stat-lbl">Дата</div></div>
     </div>
-    ${wrongRows?`<div class="review-section"><h3>Ошибки (${wrongQs.length})</h3>${wrongRows}</div>`:'<p style="color:var(--ok);text-align:center">✓ В этой попытке не было ошибок!</p>'}
+    <div class="review-section">
+      <h3>Разбор теста</h3>
+      ${answerRows||'<p style="color:var(--muted);text-align:center">Нет данных</p>'}
+    </div>
     <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn sm" id="revRetrain" ${wrongQs.length?'':'disabled'}>Тренировать ошибки</button>
+      <button class="btn sm" id="revRetrain" ${att.wrongIds?.length?'':'disabled'}>Тренировать ошибки</button>
       <button class="modal-x" style="margin:0" id="revBack">Назад</button>
     </div>
   </div>`);
@@ -1575,21 +1624,21 @@ function buildCabinet(){
       </div>
     </div>`);
     document.getElementById('confirmReset').onclick=async()=>{
-      // удаляем запись из облака
       if(_authToken && getUid()!=='anonymous'){
-        fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}`,{
+        await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}`,{
           method:'DELETE',
           headers:{'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`}
         }).catch(()=>{});
       }
       localStorage.removeItem(LS);
-      localStorage.removeItem('sb_access'); localStorage.removeItem('sb_refresh');
-      localStorage.removeItem('trainer_uid');
-      _authToken=null;
-      profile={name:'',stats:{},sessions:0,theme:'dark',activeSessions:{}};
+      // токены оставляем — пользователь остаётся залогинен
+      profile={name:'',stats:{},sessions:0,theme:'dark',activeSessions:{},updatedAt:Date.now()};
       applyTheme('dark');
+      save();
       closeOverlay();
-      initGate();
+      buildHome();
+      show('home');
+      owlNeutral('Прогресс сброшен.');
     };
     document.getElementById('cancelReset').onclick=closeOverlay;
   };
@@ -1633,7 +1682,7 @@ function showToast(msg){ const t=document.createElement('div');
 
 /* ========== GATE ========== */
 /* ========== CHANGELOG ========== */
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 function showChangelog(){
   const seen = localStorage.getItem('changelog_seen');
@@ -1650,7 +1699,19 @@ function showChangelog(){
     </div>
 
     <div class="cl-block cl-new">
-      <div class="cl-ver">v2.0.0 — текущая версия</div>
+      <div class="cl-ver">v2.1.0 — текущая версия</div>
+      <ul>
+        <li>Полный разбор теста: теперь видно что именно вы отвечали на каждый вопрос — и верные, и неверные ответы сохраняются</li>
+        <li>История попыток в кабинете показывает ваши ответы, а не только факт ошибки</li>
+        <li>Сброс прогресса работает без выхода из аккаунта</li>
+        <li>Исправлена синхронизация активных сессий между устройствами</li>
+        <li>Исправлен конфликт данных при одновременной работе на нескольких устройствах</li>
+      </ul>
+    </div>
+
+    <div class="cl-block">
+      <div class="cl-ver">v2.0.0</div>
+      <ul>
       <ul>
         <li>Облачная синхронизация прогресса через Supabase — данные не теряются при смене устройства</li>
         <li>Авторизация по email: введи адрес, получи код, войди — на любом устройстве один и тот же прогресс</li>
