@@ -586,15 +586,14 @@ async function pullFromCloud(onLoaded){
     const rows=await res.json();
     if(rows.length>0&&rows[0].data){
       const c=rows[0].data;
-      if((c.sessions||0)>=(profile.sessions||0)){
-        profile.name=c.name||profile.name;
-        profile.stats=c.stats||{};
-        profile.sessions=c.sessions||0;
-        if(c.activeSessions) profile.activeSessions=c.activeSessions;
-        if(c.theme) applyTheme(c.theme);
-        save();
-        if(onLoaded) onLoaded();
-      }
+      // всегда берём из облака — там актуальные данные
+      profile.name=c.name||profile.name;
+      if(c.stats&&Object.keys(c.stats).length>=Object.keys(profile.stats||{}).length) profile.stats=c.stats;
+      if((c.sessions||0)>=(profile.sessions||0)) profile.sessions=c.sessions||0;
+      if(c.activeSessions) profile.activeSessions=c.activeSessions;
+      if(c.theme) applyTheme(c.theme);
+      save();
+      if(onLoaded) onLoaded();
     }
     setSyncIcon('ok');
   }catch(e){setSyncIcon('err');console.warn('Supabase pull:',e);}
