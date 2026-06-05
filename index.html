@@ -114,39 +114,9 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   padding:16px;cursor:pointer;position:relative;overflow:hidden;transition:transform .2s cubic-bezier(.34,1.4,.64,1),border-color .2s,box-shadow .2s;animation:fadeUp .4s ease backwards}
 .dcard:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 32px rgba(0,0,0,.3)}
 .dcard:active{transform:scale(.98)}
-.dcard::before{content:'';position:absolute;inset:0;border-radius:inherit;opacity:.13;transition:opacity .3s;background:var(--disc-bg,none);pointer-events:none}
-.dcard:hover::before{opacity:.32}
-/* === DARK theme (default) — глубокие ночные === */
-[data-disc="Математика"]{--disc-bg:radial-gradient(ellipse at 80% 20%,#7b4fff 0%,#0a0428 70%)}
-[data-disc="Физика"]{--disc-bg:radial-gradient(ellipse at 20% 80%,#ff5e7e 0%,#1a0000 70%)}
-[data-disc="История России"]{--disc-bg:radial-gradient(ellipse at 60% 30%,#c8830a 0%,#200e00 70%)}
-[data-disc="Философия"]{--disc-bg:radial-gradient(ellipse at 40% 70%,#6c3483 0%,#0d0118 70%)}
-[data-disc="Иностранный язык (инглийский)"]{--disc-bg:radial-gradient(ellipse at 70% 40%,#1e8bc3 0%,#001020 70%)}
-[data-disc="Русский язык и культура речи"]{--disc-bg:radial-gradient(ellipse at 30% 60%,#c0392b 0%,#1a0000 70%)}
-[data-disc="Психология и этика делового общения"]{--disc-bg:radial-gradient(ellipse at 60% 20%,#e67e22 0%,#1a0800 70%)}
-[data-disc="Основы экономики и финансовой грамотности"]{--disc-bg:radial-gradient(ellipse at 20% 60%,#1e8449 0%,#001408 70%)}
-[data-disc="Основы российской государственности"]{--disc-bg:radial-gradient(ellipse at 50% 50%,#1a5276 0%,#001020 70%)}
-[data-disc="Физическая культура и спорт"]{--disc-bg:radial-gradient(ellipse at 80% 80%,#e74c3c 0%,#1a0400 70%)}
-[data-disc="Сводный банк (IT)"]{--disc-bg:radial-gradient(ellipse at 30% 30%,#00b4db 0%,#001428 70%)}
-/* === LIGHT theme — солнечные дневные === */
-[data-theme=light] [data-disc="Математика"]{--disc-bg:radial-gradient(ellipse at 80% 20%,#74b9ff 0%,#dfe6e9 70%)}
-[data-theme=light] [data-disc="Физика"]{--disc-bg:radial-gradient(ellipse at 20% 80%,#fd79a8 0%,#ffeaa7 70%)}
-[data-theme=light] [data-disc="История России"]{--disc-bg:radial-gradient(ellipse at 60% 30%,#e17055 0%,#ffeaa7 70%)}
-[data-theme=light] [data-disc="Философия"]{--disc-bg:radial-gradient(ellipse at 40% 70%,#a29bfe 0%,#dfe6e9 70%)}
-[data-theme=light] [data-disc="Иностранный язык (инглийский)"]{--disc-bg:radial-gradient(ellipse at 70% 40%,#55efc4 0%,#b2bec3 70%)}
-[data-theme=light] [data-disc="Русский язык и культура речи"]{--disc-bg:radial-gradient(ellipse at 30% 60%,#ff7675 0%,#fab1a0 70%)}
-[data-theme=light] [data-disc="Психология и этика делового общения"]{--disc-bg:radial-gradient(ellipse at 60% 20%,#fdcb6e 0%,#ffeaa7 70%)}
-[data-theme=light] [data-disc="Основы экономики и финансовой грамотности"]{--disc-bg:radial-gradient(ellipse at 20% 60%,#00b894 0%,#b2bec3 70%)}
-[data-theme=light] [data-disc="Основы российской государственности"]{--disc-bg:radial-gradient(ellipse at 50% 50%,#0984e3 0%,#dfe6e9 70%)}
-[data-theme=light] [data-disc="Физическая культура и спорт"]{--disc-bg:radial-gradient(ellipse at 80% 80%,#d63031 0%,#fdcb6e 70%)}
-[data-theme=light] [data-disc="Сводный банк (IT)"]{--disc-bg:radial-gradient(ellipse at 30% 30%,#0984e3 0%,#b2bec3 70%)}
-/* === PINK/PINK-LIGHT themes — сакуры === */
-[data-theme=pink] [data-disc],[data-theme=pink-light] [data-disc]{--disc-bg:radial-gradient(ellipse at 60% 30%,#e06fa0 0%,#4a0828 70%)}
-[data-theme=pink-light] [data-disc]{--disc-bg:radial-gradient(ellipse at 60% 30%,#f4a0c0 0%,#ffe0ed 70%)}
-/* === GOLD theme — роскошь === */
-[data-theme=gold] [data-disc]{--disc-bg:radial-gradient(ellipse at 40% 60%,#d4a020 0%,#160e00 70%)}
-/* === MIDNIGHT theme — глубокий космос === */
-[data-theme=midnight] [data-disc]{--disc-bg:radial-gradient(ellipse at 50% 30%,#6080e0 0%,#020412 70%)}
+.dcard-bg{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.18;transition:opacity .3s;overflow:hidden}
+.dcard:hover .dcard-bg{opacity:.38}
+.dcard-bg svg{position:absolute;right:-10px;bottom:-10px;width:110px;height:110px}
 .dcard.all-card .dn{color:var(--accent2);font-size:19px}
 .dcard.rand-card{background:linear-gradient(135deg,rgba(109,186,122,.12),transparent);border-color:var(--ok)}
 .dcard.rand-card .dn{color:var(--ok)}
@@ -540,6 +510,113 @@ function playComplete(){ [0,100,200,320,480].forEach((t,i)=>setTimeout(()=>beep(
 function load(){ try{const d=JSON.parse(localStorage.getItem(LS)); return d||null;}catch(e){return null;} }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(profile));}catch(e){} }
 let profile = load() || {name:'',stats:{},sessions:0,theme:'dark'};
+
+/* ========== DISC SVG ILLUSTRATIONS ========== */
+const DISC_SVG = {
+  'Математика': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="8" y="38" font-size="28" fill="currentColor" opacity=".9" font-family="Georgia,serif">∑</text>
+    <text x="52" y="32" font-size="20" fill="currentColor" opacity=".7" font-family="Georgia,serif">∫</text>
+    <text x="72" y="58" font-size="16" fill="currentColor" opacity=".6" font-family="Georgia,serif">π</text>
+    <text x="10" y="68" font-size="14" fill="currentColor" opacity=".5" font-family="monospace">x²+y²</text>
+    <text x="30" y="90" font-size="18" fill="currentColor" opacity=".7" font-family="Georgia,serif">√n</text>
+    <text x="70" y="92" font-size="13" fill="currentColor" opacity=".5" font-family="Georgia,serif">∞</text>
+    <line x1="8" y1="48" x2="42" y2="48" stroke="currentColor" stroke-width="2" opacity=".4"/>
+    <text x="8" y="62" font-size="11" fill="currentColor" opacity=".4" font-family="monospace">a²+b²=c²</text>
+  </svg>`,
+  'Физика': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="55" cy="55" r="22" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <ellipse cx="55" cy="55" rx="22" ry="8" stroke="currentColor" stroke-width="1.5" opacity=".4" transform="rotate(30 55 55)"/>
+    <ellipse cx="55" cy="55" rx="22" ry="8" stroke="currentColor" stroke-width="1.5" opacity=".4" transform="rotate(-30 55 55)"/>
+    <circle cx="55" cy="55" r="4" fill="currentColor" opacity=".8"/>
+    <text x="6" y="20" font-size="11" fill="currentColor" opacity=".5" font-family="monospace">E=mc²</text>
+    <text x="62" y="98" font-size="10" fill="currentColor" opacity=".4" font-family="monospace">F=ma</text>
+  </svg>`,
+  'История России': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="35" y="55" width="40" height="35" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <polygon points="55,25 30,55 80,55" stroke="currentColor" stroke-width="2" fill="none" opacity=".6"/>
+    <rect x="25" y="72" width="18" height="18" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+    <rect x="67" y="72" width="18" height="18" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+    <line x1="55" y1="25" x2="55" y2="18" stroke="currentColor" stroke-width="2" opacity=".6"/>
+    <polygon points="55,12 52,20 58,20" fill="currentColor" opacity=".6"/>
+    <line x1="20" y1="90" x2="90" y2="90" stroke="currentColor" stroke-width="2" opacity=".3"/>
+  </svg>`,
+  'Философия': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="55" cy="40" r="18" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <line x1="55" y1="58" x2="55" y2="85" stroke="currentColor" stroke-width="2.5" opacity=".5"/>
+    <line x1="42" y1="70" x2="68" y2="70" stroke="currentColor" stroke-width="2" opacity=".4"/>
+    <line x1="42" y1="85" x2="68" y2="85" stroke="currentColor" stroke-width="2" opacity=".4"/>
+    <text x="42" y="47" font-size="18" fill="currentColor" opacity=".7" font-family="Georgia,serif">φ</text>
+    <circle cx="35" cy="25" r="3" fill="currentColor" opacity=".3"/>
+    <circle cx="75" cy="28" r="2" fill="currentColor" opacity=".2"/>
+    <text x="6" y="105" font-size="9" fill="currentColor" opacity=".35" font-family="Georgia,serif">cogito ergo sum</text>
+  </svg>`,
+  'Иностранный язык (инглийский)': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="15" y="25" width="80" height="55" rx="5" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <line x1="15" y1="45" x2="95" y2="45" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
+    <line x1="15" y1="60" x2="95" y2="60" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
+    <text x="24" y="40" font-size="11" fill="currentColor" opacity=".6" font-family="monospace">Hello</text>
+    <text x="24" y="56" font-size="11" fill="currentColor" opacity=".5" font-family="monospace">World</text>
+    <text x="50" y="74" font-size="13" fill="currentColor" opacity=".6" font-family="serif">ABC</text>
+    <path d="M30 85 Q55 95 80 85" stroke="currentColor" stroke-width="1.5" opacity=".3" fill="none"/>
+  </svg>`,
+  'Русский язык и культура речи': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="15" width="55" height="70" rx="4" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <rect x="25" y="15" width="55" height="70" rx="4" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+    <line x1="28" y1="35" x2="65" y2="35" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+    <line x1="28" y1="45" x2="65" y2="45" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+    <line x1="28" y1="55" x2="55" y2="55" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+    <line x1="28" y1="65" x2="60" y2="65" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+    <text x="28" y="30" font-size="11" fill="currentColor" opacity=".6" font-family="serif">Аа Бб</text>
+    <text x="28" y="82" font-size="10" fill="currentColor" opacity=".4" font-family="serif">Вв Гг Дд</text>
+  </svg>`,
+  'Психология и этика делового общения': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="38" cy="35" r="14" stroke="currentColor" stroke-width="2" opacity=".6"/>
+    <circle cx="72" cy="35" r="14" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <path d="M24 65 Q38 50 52 58 Q66 65 86 55" stroke="currentColor" stroke-width="2" opacity=".5" fill="none"/>
+    <path d="M20 80 Q55 68 90 78" stroke="currentColor" stroke-width="1.5" opacity=".3" fill="none"/>
+    <text x="30" y="40" font-size="12" fill="currentColor" opacity=".7" font-family="Georgia">ψ</text>
+    <text x="65" y="40" font-size="12" fill="currentColor" opacity=".6" font-family="Georgia">ψ</text>
+  </svg>`,
+  'Основы экономики и финансовой грамотности': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="15" y="70" width="14" height="25" fill="currentColor" opacity=".5"/>
+    <rect x="35" y="55" width="14" height="40" fill="currentColor" opacity=".55"/>
+    <rect x="55" y="40" width="14" height="55" fill="currentColor" opacity=".6"/>
+    <rect x="75" y="25" width="14" height="70" fill="currentColor" opacity=".65"/>
+    <polyline points="22,70 42,55 62,40 82,25" stroke="currentColor" stroke-width="2" opacity=".7" fill="none"/>
+    <text x="30" y="18" font-size="16" fill="currentColor" opacity=".6" font-family="Georgia,serif">₽</text>
+    <line x1="10" y1="95" x2="100" y2="95" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+  </svg>`,
+  'Основы российской государственности': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="30" y="18" width="50" height="8" rx="2" fill="currentColor" opacity=".5"/>
+    <rect x="20" y="26" width="70" height="6" rx="1" fill="currentColor" opacity=".4"/>
+    <rect x="15" y="38" width="80" height="50" rx="3" stroke="currentColor" stroke-width="2" opacity=".4"/>
+    <line x1="55" y1="38" x2="55" y2="88" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+    <line x1="15" y1="63" x2="95" y2="63" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+    <circle cx="55" cy="18" r="5" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+    <line x1="55" y1="8" x2="55" y2="13" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <text x="22" y="58" font-size="9" fill="currentColor" opacity=".4" font-family="serif">Конституция</text>
+  </svg>`,
+  'Физическая культура и спорт': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="55" cy="22" r="8" stroke="currentColor" stroke-width="2" opacity=".6"/>
+    <line x1="55" y1="30" x2="55" y2="65" stroke="currentColor" stroke-width="2.5" opacity=".55"/>
+    <line x1="30" y1="48" x2="80" y2="48" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <line x1="55" y1="65" x2="38" y2="90" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <line x1="55" y1="65" x2="72" y2="90" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <circle cx="25" cy="48" r="5" fill="currentColor" opacity=".35"/>
+    <circle cx="85" cy="48" r="5" fill="currentColor" opacity=".35"/>
+    <line x1="18" y1="48" x2="28" y2="48" stroke="currentColor" stroke-width="3" opacity=".4"/>
+    <line x1="82" y1="48" x2="92" y2="48" stroke="currentColor" stroke-width="3" opacity=".4"/>
+  </svg>`,
+  'Сводный банк (IT)': `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="15" y="25" width="80" height="55" rx="6" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <rect x="22" y="32" width="66" height="40" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
+    <rect x="40" y="80" width="30" height="6" rx="1" fill="currentColor" opacity=".35"/>
+    <line x1="25" y1="90" x2="85" y2="90" stroke="currentColor" stroke-width="2" opacity=".3"/>
+    <text x="26" y="50" font-size="10" fill="currentColor" opacity=".6" font-family="monospace">&lt;code/&gt;</text>
+    <text x="26" y="64" font-size="9" fill="currentColor" opacity=".4" font-family="monospace">01101001</text>
+  </svg>`
+};
+function getDiscSvg(disc){ return DISC_SVG[disc]?`<div class="dcard-bg" style="color:var(--accent2)">${DISC_SVG[disc]}</div>`:''; }
 
 /* ========== SUPABASE CLOUD SYNC ========== */
 const SB_URL='https://lmgwuqzzsrtotmrlpxbm.supabase.co';
@@ -1312,7 +1389,7 @@ function buildHome(){
   addCard(`<div class="dn">Тест 40 вопросов</div><div class="dc">Случайные из всех дисциплин</div>${random40Badge}`,'rand-card',()=>startRandom40(),null);
   Object.entries(DATA.disciplines).forEach(([name,cnt])=>{
     const st=profile.stats[name]; const b=st?.best||0;
-    addCard(`${b?`<span class="dbest">${b}%</span>`:''}
+    addCard(`${getDiscSvg(name)}${b?`<span class="dbest">${b}%</span>`:''}
       <div class="dn">${name}</div><div class="dc">${cnt} вопросов</div>
       <div class="dpbar"><i style="width:${b}%"></i></div>${resumeBadge(name)}`,
       '',()=>chooseMode(name),name);
@@ -1530,134 +1607,132 @@ function reviewAttempt(disc, attIdx){
 function buildCabinet(){
   const discs=Object.keys(DATA.disciplines); const st=profile.stats||{};
   const totalAtt=Object.values(st).reduce((s,v)=>s+(v.attempts?.length||0),0);
-  const done=discs.filter(d=>st[d]).length;
-  const avg=done?Math.round(discs.reduce((s,d)=>s+(st[d]?.best||0),0)/done):0;
-  const rows=discs.map(d=>{const b=st[d]?.best||0;return `<div class="disc-row" data-d="${d}">
-    <span class="dr-name">${d}</span><span class="dr-bar"><i style="width:${b}%"></i></span>
-    <span class="dr-pct ${b?'':'zero'}">${b?b+'%':'—'}</span></div>`;}).join('');
-  document.getElementById('cabinet').innerHTML=`<div class="cab-card">
-    <div class="cab-header">
-      <div class="cab-avatar">${(profile.name[0]||'?').toUpperCase()}</div>
-      <div><h2>${profile.name}</h2><div class="sub" style="margin:0">Личный кабинет</div></div>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-cell"><div class="stat-num">${profile.sessions||0}</div><div class="stat-lbl">Сессий</div></div>
-      <div class="stat-cell"><div class="stat-num">${done}/${discs.length}</div><div class="stat-lbl">Начато</div></div>
-      <div class="stat-cell"><div class="stat-num">${avg}%</div><div class="stat-lbl">Средний</div></div>
-    </div>
-    <div id="discRows">${rows}</div>
-    <div class="actions" style="margin-top:20px">
-      <button class="btn ghost" id="cabHomeBtn">К дисциплинам</button>
-      <button class="btn ghost sm" id="cabExportBtn">Экспорт</button>
-      <button class="btn ghost sm" id="cabImportBtn">Импорт</button>
-      <button class="btn ghost sm" id="cabLogoutBtn">Выйти</button>
-      <button class="btn ghost sm" id="cabResetBtn" style="color:var(--bad);border-color:var(--bad)">Сбросить всё</button>
-    </div></div>`;
+  const started=discs.filter(d=>st[d]&&st[d].best>0);
+  const done=started.length;
+  const avg=done?Math.round(started.reduce((s,d)=>s+(st[d]?.best||0),0)/done):0;
+  const bestDisc=done?started.reduce((a,d)=>(!a||st[d].best>st[a].best)?d:a,null):null;
+  const worstDisc=done?started.reduce((a,d)=>(!a||st[d].best<st[a].best)?d:a,null):null;
+
+  function sparkline(disc){
+    const atts=st[disc]?.attempts||[];
+    if(atts.length<2) return '';
+    const pts=atts.slice(-8);
+    const w=80,h=24,pad=2;
+    const coords=pts.map((a,i)=>{
+      const x=pad+(i/(pts.length-1))*(w-pad*2);
+      const y=h-pad-(a.pct/100)*(h-pad*2);
+      return x+','+y;
+    }).join(' ');
+    const lastPct=pts[pts.length-1].pct;
+    const col=lastPct>=80?'var(--ok)':lastPct>=50?'var(--partial)':'var(--bad)';
+    const lastCoord=coords.split(' ').pop().split(',');
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:80px;height:24px;flex-shrink:0"><polyline points="'+coords+'" stroke="'+col+'" stroke-width="1.5" fill="none" opacity=".8"/><circle cx="'+lastCoord[0]+'" cy="'+lastCoord[1]+'" r="2.5" fill="'+col+'"/></svg>';
+  }
+
+  function radarChart(){
+    const items=discs.slice(0,8).map(d=>({name:d.split(' ')[0],val:(st[d]?.best||0)/100}));
+    const n=items.length,cx=100,cy=100,r=70;
+    const angle=(i)=>-Math.PI/2+(2*Math.PI/n)*i;
+    const pt=(i,scale)=>({x:cx+r*scale*Math.cos(angle(i)),y:cy+r*scale*Math.sin(angle(i))});
+    const grid=[.25,.5,.75,1].map(s=>'<polygon points="'+items.map((_,i)=>{const p=pt(i,s);return p.x+','+p.y;}).join(' ')+'" stroke="var(--line)" stroke-width="1" fill="none" opacity=".5"/>').join('');
+    const axes=items.map((_,i)=>{const p=pt(i,1);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'" stroke="var(--line)" stroke-width="1" opacity=".4"/>';}).join('');
+    const shape='<polygon points="'+items.map((item,i)=>{const p=pt(i,item.val);return p.x+','+p.y;}).join(' ')+'" fill="var(--accent)" fill-opacity=".25" stroke="var(--accent)" stroke-width="2"/>';
+    const labels=items.map((item,i)=>{const p=pt(i,1.22);return '<text x="'+p.x+'" y="'+p.y+'" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="var(--muted)">'+item.name+'</text>';}).join('');
+    const dots=items.map((item,i)=>{const p=pt(i,item.val);return '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="var(--accent2)"/>';}).join('');
+    return '<svg viewBox="0 0 200 200" style="width:100%;max-width:200px;margin:0 auto;display:block">'+grid+axes+shape+dots+labels+'</svg>';
+  }
+
+  const rows=discs.map(d=>{
+    const b=st[d]?.best||0;
+    const col=b>=80?'var(--ok)':b>=50?'var(--partial)':b>0?'var(--bad)':'var(--muted)';
+    return '<div class="disc-row" data-d="'+d+'">'+
+      '<span class="dr-name">'+d+'</span>'+
+      sparkline(d)+
+      '<span class="dr-bar"><i style="width:'+b+'%;background:'+col+'"></i></span>'+
+      '<span class="dr-pct" style="color:'+(b?col:'var(--muted)')+'">'+  (b?b+'%':'—')+'</span>'+
+    '</div>';
+  }).join('');
+
+  document.getElementById('cabinet').innerHTML='<div class="cab-card">'+
+    '<div class="cab-header">'+
+      '<div class="cab-avatar">'+(profile.name[0]||'?').toUpperCase()+'</div>'+
+      '<div><h2 style="margin:0">'+profile.name+'</h2><div style="font-size:13px;color:var(--muted);margin-top:2px">Личный кабинет</div></div>'+
+    '</div>'+
+    '<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin:16px 0">'+
+      '<div class="stat-cell"><div class="stat-num">'+(profile.sessions||0)+'</div><div class="stat-lbl">Тестов</div></div>'+
+      '<div class="stat-cell"><div class="stat-num">'+done+'/'+discs.length+'</div><div class="stat-lbl">Начато</div></div>'+
+      '<div class="stat-cell"><div class="stat-num" style="color:'+(avg>=80?'var(--ok)':avg>=50?'var(--partial)':'var(--bad)')+'">'+avg+'%</div><div class="stat-lbl">Средний</div></div>'+
+      '<div class="stat-cell"><div class="stat-num">'+totalAtt+'</div><div class="stat-lbl">Попыток</div></div>'+
+    '</div>'+
+    (done>=3?'<div style="margin:0 0 20px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Радар прогресса</div>'+radarChart()+'</div>':'')+
+    (bestDisc?'<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:140px;background:var(--ok-soft);border:1.5px solid var(--ok);border-radius:var(--r);padding:10px 12px">'+
+        '<div style="font-size:11px;color:var(--ok);font-weight:700;margin-bottom:3px">Лучшая дисциплина</div>'+
+        '<div style="font-size:13px">'+bestDisc+'</div>'+
+        '<div style="font-size:18px;font-weight:700;color:var(--ok)">'+st[bestDisc].best+'%</div>'+
+      '</div>'+
+      '<div style="flex:1;min-width:140px;background:var(--bad-soft);border:1.5px solid var(--bad);border-radius:var(--r);padding:10px 12px">'+
+        '<div style="font-size:11px;color:var(--bad);font-weight:700;margin-bottom:3px">Требует внимания</div>'+
+        '<div style="font-size:13px">'+worstDisc+'</div>'+
+        '<div style="font-size:18px;font-weight:700;color:var(--bad)">'+st[worstDisc].best+'%</div>'+
+      '</div>'+
+    '</div>':'')+
+    '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">По дисциплинам</div>'+
+    '<div id="discRows">'+rows+'</div>'+
+    '<div class="actions" style="margin-top:20px;flex-wrap:wrap">'+
+      '<button class="btn ghost" id="cabHomeBtn">К дисциплинам</button>'+
+      '<button class="btn ghost sm" id="cabExportBtn">Экспорт</button>'+
+      '<button class="btn ghost sm" id="cabImportBtn">Импорт</button>'+
+      '<button class="btn ghost sm" id="cabLogoutBtn">Выйти</button>'+
+      '<button class="btn ghost sm" id="cabResetBtn" style="color:var(--bad);border-color:var(--bad)">Сбросить всё</button>'+
+    '</div></div>';
+
   show('cabinet');
   document.getElementById('cabHomeBtn').onclick=()=>{show('home');buildHome();};
   document.getElementById('cabLogoutBtn').onclick=()=>{
     playClick();
     localStorage.removeItem('sb_access'); localStorage.removeItem('sb_refresh');
-    _authToken=null;
-    initGate();
+    _authToken=null; initGate();
   };
   document.getElementById('cabExportBtn').onclick=()=>{
     playClick();
     const data=JSON.stringify({name:profile.name,stats:profile.stats,sessions:profile.sessions,theme:profile.theme,uid:getUid()});
     const code=btoa(encodeURIComponent(data));
-    openOverlay(`<div class="modal" style="max-width:480px">
-      <h2>Экспорт прогресса</h2>
-      <p class="sub">Скопируй код. На другом устройстве нажми «Импорт» и вставь его — прогресс подтянется автоматически из облака.</p>
-      <textarea id="exportCode" style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none" readonly>${code}</textarea>
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button class="btn" style="flex:1;justify-content:center" id="copyCode">📋 Скопировать</button>
-        <button class="modal-x" style="margin:0" onclick="closeOverlay()">Закрыть</button>
-      </div>
-    </div>`);
+    openOverlay('<div class="modal" style="max-width:480px"><h2>Экспорт прогресса</h2><p class="sub">Скопируй код. На другом устройстве нажми «Импорт».</p><textarea id="exportCode" style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none" readonly>'+code+'</textarea><div style="display:flex;gap:10px;margin-top:12px"><button class="btn" style="flex:1;justify-content:center" id="copyCode">Скопировать</button><button class="modal-x" style="margin:0" onclick="closeOverlay()">Закрыть</button></div></div>');
     document.getElementById('exportCode').select();
-    document.getElementById('copyCode').onclick=()=>{
-      navigator.clipboard.writeText(code).then(()=>showToast('Код скопирован!')).catch(()=>{
-        document.getElementById('exportCode').select();document.execCommand('copy');showToast('Скопировано!');
-      });
-    };
+    document.getElementById('copyCode').onclick=()=>{ navigator.clipboard.writeText(code).then(()=>showToast('Код скопирован!')).catch(()=>{document.getElementById('exportCode').select();document.execCommand('copy');showToast('Скопировано!');}); };
   };
   document.getElementById('cabImportBtn').onclick=()=>{
     playClick();
-    openOverlay(`<div class="modal" style="max-width:480px">
-      <h2>Импорт прогресса</h2>
-      <p class="sub">Вставь код с другого устройства. UID перенесётся — прогресс автоматически загрузится из облака.</p>
-      <textarea id="importCode" placeholder="Вставь код сюда..." style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none"></textarea>
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button class="btn" style="flex:1;justify-content:center" id="doImport">Применить</button>
-        <button class="modal-x" style="margin:0" onclick="closeOverlay()">Отмена</button>
-      </div>
-    </div>`);
+    openOverlay('<div class="modal" style="max-width:480px"><h2>Импорт прогресса</h2><p class="sub">Вставь код с другого устройства.</p><textarea id="importCode" placeholder="Вставь код сюда..." style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none"></textarea><div style="display:flex;gap:10px;margin-top:12px"><button class="btn" style="flex:1;justify-content:center" id="doImport">Применить</button><button class="modal-x" style="margin:0" onclick="closeOverlay()">Отмена</button></div></div>');
     document.getElementById('doImport').onclick=()=>{
       const code=(document.getElementById('importCode').value||'').trim();
       try{
         const data=JSON.parse(decodeURIComponent(atob(code)));
         if(!data.stats) throw new Error('bad');
-        // восстанавливаем UID — это ключ для синхронизации с облаком
         if(data.uid) localStorage.setItem('trainer_uid',data.uid);
-        profile.name=data.name||profile.name;
-        profile.stats=data.stats;
+        profile.name=data.name||profile.name; profile.stats=data.stats;
         profile.sessions=data.sessions||0;
         if(data.theme) applyTheme(data.theme);
-        save();
-        closeOverlay();
-        buildCabinet();
-        showToast('✅ Прогресс импортирован!');
-        // тянем из облака — там может быть ещё более свежая версия
-        pullFromCloud(()=>{ buildCabinet(); showToast('Прогресс обновлён из облака'); });
-      }catch(e){ showToast('❌ Неверный код.'); }
+        save(); closeOverlay(); buildCabinet(); showToast('Прогресс импортирован!');
+        pullFromCloud(()=>{ buildCabinet(); showToast('Обновлено из облака'); });
+      }catch(e){ showToast('Неверный код.'); }
     };
   };
   document.getElementById('cabResetBtn').onclick=()=>{
     playClick();
-    openOverlay(`<div class="modal" style="text-align:center;max-width:380px">
-      <div style="font-size:42px;margin-bottom:10px">⚠️</div>
-      <h2>Сбросить всё?</h2>
-      <p class="sub">Весь прогресс, история попыток и имя будут удалены безвозвратно.</p>
-      <div style="display:flex;gap:10px;margin-top:16px">
-        <button class="btn bad-btn" style="flex:1;justify-content:center" id="confirmReset">Да, сбросить</button>
-        <button class="btn ghost" style="flex:1;justify-content:center" id="cancelReset">Отмена</button>
-      </div>
-    </div>`);
+    openOverlay('<div class="modal" style="text-align:center;max-width:380px"><h2>Сбросить всё?</h2><p class="sub">Весь прогресс и история попыток будут удалены безвозвратно.</p><div style="display:flex;gap:10px;margin-top:16px"><button class="btn bad-btn" style="flex:1;justify-content:center" id="confirmReset">Да, сбросить</button><button class="btn ghost" style="flex:1;justify-content:center" id="cancelReset">Отмена</button></div></div>');
     document.getElementById('confirmReset').onclick=async()=>{
-      if(_authToken && getUid()!=='anonymous'){
-        await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}`,{
-          method:'DELETE',
-          headers:{'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`}
-        }).catch(()=>{});
+      if(_authToken&&getUid()!=='anonymous'){
+        await fetch(SB_URL+'/rest/v1/progress?user_id=eq.'+encodeURIComponent(getUid()),{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+_authToken}}).catch(()=>{});
       }
       localStorage.removeItem(LS);
-      // токены оставляем — пользователь остаётся залогинен
       profile={name:'',stats:{},sessions:0,theme:'dark',activeSessions:{},updatedAt:Date.now()};
-      applyTheme('dark');
-      save();
-      closeOverlay();
-      buildHome();
-      show('home');
-      owlNeutral('Прогресс сброшен.');
+      applyTheme('dark'); save(); closeOverlay(); buildHome(); show('home'); owlNeutral('Прогресс сброшен.');
     };
     document.getElementById('cancelReset').onclick=closeOverlay;
   };
-  document.querySelectorAll('.disc-row').forEach(row=>{
-    row.onclick=()=>showDiscHistory(row.dataset.d);
-  });
-}
-function showDiscHistory(disc){
-  const st=profile.stats[disc]; const atts=st?.attempts||[];
-  if(!atts.length){ showToast('Нет истории по этой дисциплине'); return; }
-  const rows=atts.map((a,i)=>{ const cls=a.pct>=80?'hi':a.pct>=50?'mid':'lo'; return `<div class="att-row"><span class="att-pct ${cls}">${a.pct}%</span><span class="att-info">${a.correct}/${a.total} верно · ${a.date}</span><span class="att-time">${a.time||''}</span></div>`; }).join('');
-  openOverlay(`<div class="modal"><h2>${disc}</h2><p class="sub">История попыток (последние 10)</p>
-    <div class="attempts-list">${rows}</div>
-    <div style="margin-top:14px;display:flex;gap:10px">
-      <button class="btn sm" id="practiceAgain">Тренировать</button>
-      <button class="modal-x" style="margin:0" id="histClose">Назад</button>
-    </div></div>`);
-  document.getElementById('histClose').onclick=closeOverlay;
-  document.getElementById('practiceAgain').onclick=()=>{ closeOverlay(); chooseMode(disc); };
+  document.querySelectorAll('.disc-row').forEach(row=>{ row.onclick=()=>showDiscPage(row.dataset.d); });
 }
 
 /* ========== THEME PICKER ========== */
