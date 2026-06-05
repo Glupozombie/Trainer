@@ -526,13 +526,14 @@ function setSyncIcon(s){
   el.textContent=icons[s]||'☁️'; el.title=tips[s]||''; el.style.opacity=s==='err'?'.45':'1';
 }
 async function pushToCloud(){
+  if(!_authToken){setSyncIcon('err');return;}
   setSyncIcon('sync');
   try{
     const res=await fetch(`${SB_URL}/rest/v1/progress?on_conflict=user_id`,{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,
+        'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`,
         'Prefer':'resolution=merge-duplicates,return=minimal'
       },
       body:JSON.stringify({
@@ -546,10 +547,11 @@ async function pushToCloud(){
   }catch(e){setSyncIcon('err');console.warn('Supabase push:',e);}
 }
 async function pullFromCloud(onLoaded){
+  if(!_authToken){setSyncIcon('err');return;}
   setSyncIcon('sync');
   try{
     const res=await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}&select=data,updated_at`,{
-      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`}
     });
     if(!res.ok){setSyncIcon('err');return;}
     const rows=await res.json();
