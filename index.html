@@ -557,6 +557,9 @@ function setSyncIcon(s){
 async function pushToCloud(){
   if(!_authToken){setSyncIcon('err');console.warn('pushToCloud: no token');return;}
   setSyncIcon('sync');
+  const now=Date.now();
+  profile.updatedAt=now;
+  save();
   console.log('pushToCloud: saving sessions=',profile.sessions,'stats keys=',Object.keys(profile.stats).length);
   try{
     const res=await fetch(`${SB_URL}/rest/v1/progress?on_conflict=user_id`,{
@@ -568,7 +571,7 @@ async function pushToCloud(){
       },
       body:JSON.stringify({
         user_id:getUid(),
-        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme,activeSessions:profile.activeSessions||{}},
+        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme,activeSessions:profile.activeSessions||{},updatedAt:Date.now()},
         updated_at:new Date().toISOString()
       })
     });
@@ -587,12 +590,15 @@ async function pullFromCloud(onLoaded){
     const rows=await res.json();
     if(rows.length>0&&rows[0].data){
       const c=rows[0].data;
-      // всегда берём из облака — там актуальные данные
-      profile.name=c.name||profile.name;
+      const cloudTime=c.updatedAt||0;
+      const localTime=profile.updatedAt||0;
+      // берём stats из облака если там не меньше данных
       if(c.stats&&Object.keys(c.stats).length>=Object.keys(profile.stats||{}).length) profile.stats=c.stats;
       if((c.sessions||0)>=(profile.sessions||0)) profile.sessions=c.sessions||0;
-      if(c.activeSessions) profile.activeSessions=c.activeSessions;
+      // activeSessions — берём из облака если оно новее локального
+      if(c.activeSessions&&cloudTime>=localTime) profile.activeSessions=c.activeSessions;
       if(c.theme) applyTheme(c.theme);
+      profile.name=c.name||profile.name;
       save();
       if(onLoaded) onLoaded();
     }
