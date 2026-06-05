@@ -177,6 +177,12 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .mode-btn span{color:var(--muted);font-size:12.5px}
 .modal-x{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;margin-top:14px;padding:4px 0;font-family:var(--sans);transition:color .15s}
 .modal-x:hover{color:var(--ink)}
+.cl-block{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.cl-block:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.cl-block.cl-new .cl-ver{color:var(--accent)}
+.cl-ver{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+.cl-block ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.cl-block li{font-size:14px;line-height:1.5;color:var(--ink)}
 .type-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .tf{background:var(--panel);border:1.5px solid var(--line);border-radius:99px;padding:7px 13px;font-size:13px;cursor:pointer;transition:.15s;color:var(--ink)}
 .tf.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent2)}
@@ -561,7 +567,7 @@ async function pushToCloud(){
       },
       body:JSON.stringify({
         user_id:getUid(),
-        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme},
+        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme,activeSessions:profile.activeSessions||{}},
         updated_at:new Date().toISOString()
       })
     });
@@ -584,6 +590,7 @@ async function pullFromCloud(onLoaded){
         profile.name=c.name||profile.name;
         profile.stats=c.stats||{};
         profile.sessions=c.sessions||0;
+        if(c.activeSessions) profile.activeSessions=c.activeSessions;
         if(c.theme) applyTheme(c.theme);
         save();
         if(onLoaded) onLoaded();
@@ -1611,7 +1618,95 @@ function showToast(msg){ const t=document.createElement('div');
   t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
 
 /* ========== GATE ========== */
-/* ========== AUTH ========== */
+/* ========== CHANGELOG ========== */
+const APP_VERSION = '2.0.0';
+
+function showChangelog(){
+  const seen = localStorage.getItem('changelog_seen');
+  if(seen === APP_VERSION) return;
+  localStorage.setItem('changelog_seen', APP_VERSION);
+
+  openOverlay(`<div class="modal" style="max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <h2 style="margin:0">Тренажёр аккредитации</h2>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Версия ${APP_VERSION} · История изменений</div>
+      </div>
+      <span style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap">Новое</span>
+    </div>
+
+    <div class="cl-block cl-new">
+      <div class="cl-ver">v2.0.0 — текущая версия</div>
+      <ul>
+        <li>Облачная синхронизация прогресса через Supabase — данные не теряются при смене устройства</li>
+        <li>Авторизация по email: введи адрес, получи код, войди — на любом устройстве один и тот же прогресс</li>
+        <li>Несколько активных сессий одновременно — можно поставить на паузу разные дисциплины независимо</li>
+        <li>Прогресс сохраняется в облако при каждой паузе, а не только при завершении теста</li>
+        <li>Экран результатов показывает неверные ответы с объяснением, почему именно такой процент</li>
+        <li>Показать ответ — необратимо: один раз открыл, скрыть нельзя</li>
+        <li>Убраны ассоциации к вопросам</li>
+        <li>Интерфейс адаптирован под мобильные устройства: всё помещается без лишней прокрутки</li>
+        <li>Исправлен баг: кнопка «Назад» вызывала повторное появление вопроса</li>
+        <li>Исправлен баг: формулы в вопросах по математике больше не растягиваются на весь экран</li>
+        <li>Исправлен баг: при перетаскивании браузер больше не показывает ghost-изображение картинки</li>
+        <li>Убраны лишние эмодзи из интерфейса</li>
+        <li>Звук работает на мобильных устройствах</li>
+      </ul>
+    </div>
+
+    <div class="cl-block">
+      <div class="cl-ver">v1.3.0</div>
+      <ul>
+        <li>Навигатор вопросов в стиле Moodle — компактная сетка для быстрого перехода</li>
+        <li>История попыток по каждой дисциплине с графиком результатов</li>
+        <li>Режим «Тренировать ошибки» — повторить только неверно отвеченные вопросы</li>
+        <li>Просмотр любой завершённой попытки с разбором ошибок</li>
+        <li>Экспорт и импорт прогресса кодом для переноса между устройствами</li>
+        <li>Сохранение и восстановление незавершённого теста</li>
+        <li>Бейдж «В процессе» на карточке дисциплины</li>
+      </ul>
+    </div>
+
+    <div class="cl-block">
+      <div class="cl-ver">v1.2.0</div>
+      <ul>
+        <li>Пять тем оформления: тёмная, светлая, розовая, золотая, полночная</li>
+        <li>Анимированный совёнок с репликами</li>
+        <li>Звуковые эффекты с возможностью отключить</li>
+        <li>Цветовые вспышки экрана при верном и неверном ответе</li>
+        <li>Уведомления-тосты при достижении 25 / 50 / 75 / 100% прохождения</li>
+        <li>Поддержка вопросов на упорядочивание с перетаскиванием (drag-and-drop и touch)</li>
+        <li>Поддержка вопросов на сопоставление с выпадающими списками</li>
+        <li>Самопроверка для вопросов с открытым ответом: верно / почти верно / неверно</li>
+      </ul>
+    </div>
+
+    <div class="cl-block">
+      <div class="cl-ver">v1.1.0</div>
+      <ul>
+        <li>Три режима прохождения: по порядку, случайно, сложные чаще</li>
+        <li>Тест 40 случайных вопросов из всех дисциплин</li>
+        <li>Кнопки «Пропустить» и «Назад» во время теста</li>
+        <li>Кнопка «Показать ответ» с пометкой об автоматическом зачёте как неверного</li>
+        <li>Статистика: лучший результат, количество попыток, время прохождения</li>
+      </ul>
+    </div>
+
+    <div class="cl-block">
+      <div class="cl-ver">v1.0.0 — первая версия</div>
+      <ul>
+        <li>422 вопроса из 11 дисциплин, включая Сводный банк (IT)</li>
+        <li>Поддержка типов вопросов: одиночный выбор, множественный выбор, числовой ввод</li>
+        <li>Мгновенная проверка ответа с подсветкой верных и неверных вариантов</li>
+        <li>Прогресс-бар и счётчик вопросов</li>
+        <li>Сохранение прогресса в браузере</li>
+      </ul>
+    </div>
+
+    <button class="btn" style="width:100%;justify-content:center;margin-top:18px" onclick="closeOverlay()">Понятно, начать</button>
+  </div>`);
+}
+
 async function sbSendOtp(email){
   const res=await fetch(`${SB_URL}/auth/v1/otp`,{
     method:'POST',
@@ -1719,7 +1814,8 @@ function initGate(){
       if(!profile.name) profile.name=_email.split('@')[0];
       save();
       await pullFromCloud();
-      buildHome(); show('home'); owlNeutral('Добро пожаловать! 🦉');
+      buildHome(); show('home'); owlNeutral('Добро пожаловать!');
+      showChangelog();
     } else {
       codeGo.disabled=false; codeGo.textContent='Войти';
       showToast('Неверный код. Попробуй ещё раз.');
@@ -1766,6 +1862,7 @@ document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\
       if(!profile.name){ profile.name=user.email.split('@')[0]; save(); }
       buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
       await pullFromCloud(()=>{ buildHome(); });
+      showChangelog();
       return;
     }
   }
