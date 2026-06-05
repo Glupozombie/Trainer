@@ -670,6 +670,17 @@ async function pullFromCloud(onLoaded){
       const c=rows[0].data;
       const cloudTime=c.updatedAt||0;
       const localTime=profile.updatedAt||0;
+
+      // Если облако содержит флаг сброса и оно новее — применяем сброс
+      if(c.reset && cloudTime>localTime){
+        profile={name:'',stats:{},sessions:0,theme:c.theme||'dark',activeSessions:{},updatedAt:cloudTime};
+        applyTheme(profile.theme);
+        save();
+        if(onLoaded) onLoaded();
+        setSyncIcon('ok');
+        return;
+      }
+
       // берём stats из облака если там не меньше данных
       if(c.stats&&Object.keys(c.stats).length>=Object.keys(profile.stats||{}).length) profile.stats=c.stats;
       if((c.sessions||0)>=(profile.sessions||0)) profile.sessions=c.sessions||0;
@@ -1724,7 +1735,12 @@ function buildCabinet(){
     openOverlay('<div class="modal" style="text-align:center;max-width:380px"><h2>Сбросить всё?</h2><p class="sub">Весь прогресс и история попыток будут удалены безвозвратно.</p><div style="display:flex;gap:10px;margin-top:16px"><button class="btn bad-btn" style="flex:1;justify-content:center" id="confirmReset">Да, сбросить</button><button class="btn ghost" style="flex:1;justify-content:center" id="cancelReset">Отмена</button></div></div>');
     document.getElementById('confirmReset').onclick=async()=>{
       if(_authToken&&getUid()!=='anonymous'){
-        await fetch(SB_URL+'/rest/v1/progress?user_id=eq.'+encodeURIComponent(getUid()),{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+_authToken}}).catch(()=>{});
+        // Не удаляем запись, а обнуляем — иначе другие устройства не узнают о сбросе
+        await fetch(SB_URL+'/rest/v1/progress?on_conflict=user_id',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+_authToken,'Prefer':'resolution=merge-duplicates,return=minimal'},
+          body:JSON.stringify({user_id:getUid(),data:{name:'',stats:{},sessions:0,theme:'dark',activeSessions:{},updatedAt:Date.now(),reset:true},updated_at:new Date().toISOString()})
+        }).catch(()=>{});
       }
       localStorage.removeItem(LS);
       profile={name:'',stats:{},sessions:0,theme:'dark',activeSessions:{},updatedAt:Date.now()};
