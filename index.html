@@ -511,13 +511,8 @@ const SB_URL='https://lmgwuqzzsrtotmrlpxbm.supabase.co';
 const SB_KEY='sb_publishable_lAJYgT1zRn77lE9dKfJXRg_6vveClP0';
 
 function getUid(){
-  let u=localStorage.getItem('trainer_uid');
-  if(!u){
-    u=(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():
-      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
-    localStorage.setItem('trainer_uid',u);
-  }
-  return u;
+  // всегда используем Supabase user.id — он одинаковый на всех устройствах
+  return localStorage.getItem('trainer_uid')||'anonymous';
 }
 function setSyncIcon(s){
   const el=document.getElementById('syncIcon'); if(!el)return;
