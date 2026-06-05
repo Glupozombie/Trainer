@@ -1726,18 +1726,19 @@ document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\
   if(token){
     const user=await sbGetUser(token);
     if(user){
-      _authToken=token;
+      _authToken=token; // восстанавливаем токен из localStorage
       localStorage.setItem('trainer_uid',user.id);
-      if(!profile.name) profile.name=user.email.split('@')[0];
-      save();
+      if(!profile.name){ profile.name=user.email.split('@')[0]; save(); }
       await pullFromCloud();
       buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
       return;
     }
   }
+  // токен невалиден — на экран входа
+  localStorage.removeItem('sb_access');
+  localStorage.removeItem('sb_refresh');
   initGate();
 })();
-
 </script>
 </body>
 </html>
