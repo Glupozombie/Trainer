@@ -409,17 +409,39 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .disc-actions{display:flex;flex-direction:column;gap:9px}
 /* ============ RESPONSIVE ============ */ */
 @media(max-width:600px){
-  .wrap{padding:16px 12px 80px}
-  h1{font-size:22px}
-  .qtext{font-size:17px}
+  .wrap{padding:12px 10px 24px}
+  h1{font-size:20px}
+  .qtext{font-size:16px;line-height:1.5}
   .grid{grid-template-columns:1fr 1fr}
   .shortcuts{display:none}
-  .topbar{gap:8px}
-  .result-big{font-size:46px}
-  .stat-num{font-size:22px}
+  .topbar{gap:6px;margin-bottom:8px}
+  .topbar-disc{font-size:14px}
+  .topbar-meta{font-size:12px;gap:8px}
+  .result-big{font-size:40px}
+  .stat-num{font-size:20px}
+  .btn{padding:10px 14px;font-size:14px}
+  .btn.sm{padding:7px 11px;font-size:12px}
+  .actions{gap:7px;margin-top:12px}
+  .opt{padding:10px 11px;font-size:15px}
+  .order-item{padding:9px 10px;font-size:14px}
+  .match-table td{padding:7px 6px;font-size:13px}
+  .match-table select{font-size:13px}
+  .qCard{padding:14px 12px}
+  .hint-link{font-size:13px}
+  .home-top-actions{gap:5px}
+  .gate-wrap{padding:24px 16px}
+  .gate-input{font-size:15px;padding:11px 14px}
+  .dcard{padding:14px 12px}
+  .result-card{padding:16px 12px}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .nav-grid{gap:3px}
+  .nav-btn{min-width:26px;height:26px;font-size:11px}
+  #codeIn{font-size:20px;letter-spacing:3px}
 }
 @media(max-width:400px){
   .grid{grid-template-columns:1fr}
+  .actions{flex-direction:column}
+  .actions .btn{width:100%;justify-content:center}
 }
 </style>
 </head>
@@ -431,13 +453,13 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
     <p class="gate-sub">Введи email — получишь код для входа</p>
     <div id="gateEmail">
       <input class="gate-input" id="emailIn" placeholder="твой@email.ru" type="email" autocomplete="email">
-      <button class="btn gate-btn" id="emailGo">Получить код ✦</button>
+      <button class="btn gate-btn" id="emailGo">Получить код</button>
     </div>
     <div id="gateCode" class="hidden">
       <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
       <input class="gate-input" id="codeIn" placeholder="Введи код из письма" type="text" maxlength="8" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:22px;letter-spacing:4px">
-      <button class="btn gate-btn" id="codeGo">Войти →</button>
-      <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack">← Другой email</button>
+      <button class="btn gate-btn" id="codeGo">Войти</button>
+      <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack">Другой email</button>
     </div>
   </div></section>
 
@@ -484,7 +506,12 @@ const LS = "trainer_v3";
 
 /* ========== AUDIO ========== */
 let _ctx = null;
-function ctx(){ if(!_ctx) try{_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} return _ctx; }
+function ctx(){
+  if(!_ctx) try{_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  // на мобильных браузерах AudioContext нужно разбудить после user gesture
+  if(_ctx&&_ctx.state==='suspended') _ctx.resume();
+  return _ctx;
+}
 function beep(freq,type,vol,dur,decay){
   if(profile && profile.soundEnabled===false) return;  // muted
   const c=ctx(); if(!c) return;
@@ -521,8 +548,9 @@ function setSyncIcon(s){
   el.textContent=icons[s]||'☁️'; el.title=tips[s]||''; el.style.opacity=s==='err'?'.45':'1';
 }
 async function pushToCloud(){
-  if(!_authToken){setSyncIcon('err');return;}
+  if(!_authToken){setSyncIcon('err');console.warn('pushToCloud: no token');return;}
   setSyncIcon('sync');
+  console.log('pushToCloud: saving sessions=',profile.sessions,'stats keys=',Object.keys(profile.stats).length);
   try{
     const res=await fetch(`${SB_URL}/rest/v1/progress?on_conflict=user_id`,{
       method:'POST',
@@ -752,16 +780,14 @@ function renderQ(q,pid,anim){
       <button class="btn" id="checkBtn">Проверить</button>
       <button class="btn ghost hidden" id="nextBtn">Далее →</button>
       <button class="btn ghost sm" id="skipBtn">Пропустить</button>
-      <button class="btn ghost sm" id="backBtn" ${session.history.length===0?'disabled':''}>← Назад</button>
+      <button class="btn ghost sm" id="backBtn" ${session.history.length===0?'disabled':''}>Назад</button>
     </div>
     <div id="fbArea"></div>
     <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px">
-      <button class="hint-link" id="hintBtn">👁 Показать ответ</button>
-      <button class="assoc-btn" id="assocBtn">💡 Ассоциация</button>
+      <button class="hint-link" id="hintBtn">Показать ответ</button>
       <span style="font-size:11.5px;color:var(--muted);margin-left:auto">Вопрос ${pid+1} / ${session.total}</span>
     </div>
-    <div id="hintArea"></div>
-    <div id="assocArea"></div>`;
+    <div id="hintArea"></div>`;
   // delays on opts
   card.querySelectorAll('.opt').forEach((o,i)=>o.style.animationDelay=(i*.04)+'s');
   wireQ(q,pid);
@@ -801,7 +827,6 @@ function wireQ(q,pid){
   }
   if(q.type==='ordering') wireDnD();
   document.getElementById('hintBtn').onclick=()=>doHint(q,pid);
-  document.getElementById('assocBtn').onclick=()=>doAssoc(q);
   document.getElementById('checkBtn').onclick=()=>checkAnswer(q,pid);
   document.getElementById('nextBtn').onclick=()=>{ playClick(); nextQ(); };
   document.getElementById('skipBtn').onclick=()=>doSkip(q,pid);
@@ -890,7 +915,7 @@ function askRetrain(){
     <h2>Все ошибки проработаны!</h2>
     <p class="sub">Хочешь ещё потренировать эти вопросы или двигаться дальше?</p>
     <div class="mode-list">
-      <button class="mode-btn" id="rtrainYes"><b>🔄 Ещё раз прогнать ошибки</b><span>Те же вопросы заново</span></button>
+      <button class="mode-btn" id="rtrainYes"><b>Ещё раз прогнать ошибки</b><span>Те же вопросы заново</span></button>
       <button class="mode-btn" id="rtrainAll"><b>📚 Перейти к полному тесту</b><span>Все вопросы дисциплины</span></button>
       <button class="modal-x" id="rtrainNo">Посмотреть результаты →</button>
     </div></div>`);
@@ -903,14 +928,16 @@ function askRetrain(){
 function doHint(q,pid){
   playClick();
   const area=document.getElementById('hintArea'); if(!area) return;
-  // toggle
-  if(area.innerHTML){area.innerHTML='';document.getElementById('hintBtn').textContent='👁 Показать ответ';return;}
+  // необратимо — один раз показал, скрыть нельзя
+  if(area.innerHTML) return;
   document.getElementById('qCard').dataset.hinted='1';
-  document.getElementById('hintBtn').textContent='👁 Скрыть ответ';
+  document.getElementById('hintBtn').textContent='Ответ показан';
+  document.getElementById('hintBtn').disabled=true;
+  document.getElementById('hintBtn').style.opacity='0.5';
   area.innerHTML=`<div class="assoc-popup" style="border-color:var(--partial);margin-top:10px">
-    <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--partial)">👁 Правильный ответ</div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--partial)">Правильный ответ</div>
     <div class="assoc-text">${correctOf(q)}</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:6px">⚠ Если ответишь правильно — всё равно засчитается как неверный</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px">Вопрос будет засчитан как неверный</div>
   </div>`;
 }
 
@@ -949,7 +976,9 @@ function record(q,pid,result){
 function autoSaveSession(){
   if(!session||!session.pool) return;
   try{
-    profile.activeSession={
+    const key=session.isRandom40?'__random40__':(session.disc||'__all__');
+    if(!profile.activeSessions) profile.activeSessions={};
+    profile.activeSessions[key]={
       disc:session.disc, mode:session.mode, isRandom40:!!session.isRandom40,
       poolIds:session.pool.map(q=>q._id),
       queue:[...session.queue], currentPid:session.currentPid,
@@ -958,12 +987,17 @@ function autoSaveSession(){
       history:session.history.slice(), elapsed:session.elapsed,
       total:session.total
     };
+    // обратная совместимость
+    profile.activeSession=profile.activeSessions[key];
     save();
+    pushToCloud();
   }catch(e){}
 }
 
 function clearActiveSession(){
-  if(profile) delete profile.activeSession;
+  const key=session?.isRandom40?'__random40__':(session?.disc||'__all__');
+  if(profile.activeSessions) delete profile.activeSessions[key];
+  delete profile.activeSession;
   save();
 }
 
@@ -1200,9 +1234,9 @@ function confirmExit(){
     <h2>Выйти из теста?</h2>
     <p class="sub">Вопрос ${(session.currentPid||0)+1} из ${session.total} · освоено ${session.firstCorrect.size}</p>
     <div class="mode-list">
-      <button class="mode-btn" id="exitSave"><b>⏸ Сохранить и выйти</b><span>Тест поставится на паузу — можно продолжить позже</span></button>
-      <button class="mode-btn" id="exitNo" style="border-color:var(--bad)"><b>🗑 Выйти без сохранения</b><span>Прогресс этой сессии потеряется</span></button>
-      <button class="modal-x" id="exitCancel">← Продолжить тест</button>
+      <button class="mode-btn" id="exitSave"><b>Сохранить и выйти</b><span>Тест поставится на паузу — можно продолжить позже</span></button>
+      <button class="mode-btn" id="exitNo" style="border-color:var(--bad)"><b>Выйти без сохранения</b><span>Прогресс этой сессии потеряется</span></button>
+      <button class="modal-x" id="exitCancel">Продолжить тест</button>
     </div></div>`);
   document.getElementById('exitSave').onclick=()=>{
     autoSaveSession();   // обновляем snapshot (уже сохранён, но на всякий случай)
@@ -1225,19 +1259,17 @@ function buildHome(){
     (best?` &nbsp;·&nbsp; <span style="color:var(--muted)">Дисциплин начато: <b style="color:var(--accent2)">${best}</b></span> &nbsp;·&nbsp; <span style="color:var(--muted)">Средний балл: <b style="color:var(--ok)">${avg}%</b></span>`:'');
   const g=document.getElementById('homeGrid'); g.innerHTML='';
   let delay=0;
-  const as=profile.activeSession;
+  const activeSessions=profile.activeSessions||{};
   const resumeBadge=(disc)=>{
-    if(!as||!as.queue||as.queue.length===0) return '';
-    const match = disc===null
-      ? (!as.isRandom40 && as.disc===null)   // «Все дисциплины»
-      : (as.disc===disc);
-    return match?`<span class="resume-badge">⏸ В процессе</span>`:'';
+    const key=disc===null?'__all__':disc;
+    const s=activeSessions[key];
+    return (s&&s.queue&&s.queue.length>0)?`<span class="resume-badge">В процессе</span>`:'';
   };
-  const random40Badge = as&&as.isRandom40&&as.queue&&as.queue.length>0
-    ?`<span class="resume-badge">⏸ В процессе</span>`:'';
+  const random40Badge=(activeSessions['__random40__']&&activeSessions['__random40__'].queue&&activeSessions['__random40__'].queue.length>0)
+    ?`<span class="resume-badge">В процессе</span>`:'';
   const addCard=(html,cls,cb,disc)=>{delay+=.04; const c=document.createElement('div'); c.className=`dcard ${cls||''}`; c.style.animationDelay=delay+'s'; if(disc) c.dataset.disc=disc; c.innerHTML=html; c.onclick=cb; g.appendChild(c); return c;};
   addCard(`<div class="dn">Все дисциплины</div><div class="dc">${DATA.questions.length} вопросов</div>${resumeBadge(null)}`,'all-card',()=>chooseMode(null),null);
-  addCard(`<div class="dn">🎲 Тест 40 вопросов</div><div class="dc">Случайные из всех дисциплин</div>${random40Badge}`,'rand-card',()=>startRandom40(),null);
+  addCard(`<div class="dn">Тест 40 вопросов</div><div class="dc">Случайные из всех дисциплин</div>${random40Badge}`,'rand-card',()=>startRandom40(),null);
   Object.entries(DATA.disciplines).forEach(([name,cnt])=>{
     const st=profile.stats[name]; const b=st?.best||0;
     addCard(`${b?`<span class="dbest">${b}%</span>`:''}
@@ -1255,20 +1287,18 @@ function wireQuizButtons(){
 }
 
 function startRandom40(){
-  // check for active random session
-  const as=profile.activeSession;
-  if(as && as.isRandom40 && as.queue && as.queue.length>0){
+  const as=(profile.activeSessions||{})['__random40__'];
+  if(as && as.queue && as.queue.length>0){
     const done=as.firstSeen?.length||0;
     openOverlay(`<div class="modal" style="text-align:center;max-width:400px">
-      <div style="font-size:42px;margin-bottom:10px">⏸</div>
       <h2>Незавершённый тест 40 вопросов</h2>
       <p class="sub">Пройдено ${done} из ${as.total||40} вопросов</p>
       <div class="mode-list" style="margin-top:16px">
-        <button class="mode-btn" id="resumeR"><b>▶ Продолжить</b><span>С того места</span></button>
-        <button class="mode-btn" id="newR"><b>🔄 Новый тест</b><span>40 новых случайных вопросов</span></button>
+        <button class="mode-btn" id="resumeR"><b>Продолжить</b><span>С того места</span></button>
+        <button class="mode-btn" id="newR"><b>Новый тест</b><span>40 новых случайных вопросов</span></button>
       </div></div>`);
     document.getElementById('resumeR').onclick=()=>{ closeOverlay();
-      if(restoreSession(as)){ show('quiz'); document.getElementById('qDisc').textContent='🎲 Тест 40 вопросов'; wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ(); }};
+      if(restoreSession(as)){ show('quiz'); document.getElementById('qDisc').textContent='Тест 40 вопросов'; wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ(); }};
     document.getElementById('newR').onclick=()=>{ closeOverlay(); clearActiveSession(); _startRandom40(); };
     return;
   }
@@ -1281,7 +1311,7 @@ function _startRandom40(){
     firstSeen:new Set(),firstCorrect:new Set(),wrong:[],wrongIds:[],partials:[],skipped:[],hinted:new Set(),history:[],elapsed:0,startTime:Date.now()};
   closeOverlay(); show('quiz');
   _shownMilestones.clear();
-  document.getElementById('qDisc').textContent='🎲 Тест 40 вопросов';
+  document.getElementById('qDisc').textContent='Тест 40 вопросов';
   autoSaveSession();
   wireQuizButtons(); startTimer(); nextQ();
 }
@@ -1295,17 +1325,16 @@ function chooseMode(disc, forceMode){
 }
 
 function showDiscPage(disc){
-  // check for active session for this discipline
-  const as=profile.activeSession;
-  if(as && !as.isRandom40 && as.disc===disc && as.queue && as.queue.length>0){
+  const key=disc===null?'__all__':disc;
+  const as=(profile.activeSessions||{})[key];
+  if(as && !as.isRandom40 && as.queue && as.queue.length>0){
     const done=as.firstSeen?.length||0, total=as.total||25;
     openOverlay(`<div class="modal" style="text-align:center;max-width:400px">
-      <div style="font-size:42px;margin-bottom:10px">⏸</div>
       <h2>Незавершённый тест</h2>
       <p class="sub">${disc||'Все дисциплины'} · Пройдено ${done} из ${total} вопросов</p>
       <div class="mode-list" style="margin-top:16px">
-        <button class="mode-btn" id="resumeBtn"><b>▶ Продолжить</b><span>С того места, где остановился</span></button>
-        <button class="mode-btn" id="newTestBtn"><b>🔄 Начать новый тест</b><span>Прогресс незавершённого будет потерян</span></button>
+        <button class="mode-btn" id="resumeBtn"><b>Продолжить</b><span>С того места, где остановился</span></button>
+        <button class="mode-btn" id="newTestBtn"><b>Начать новый тест</b><span>Прогресс незавершённого будет потерян</span></button>
       </div></div>`);
     document.getElementById('resumeBtn').onclick=()=>{
       closeOverlay();
@@ -1381,7 +1410,7 @@ function _showDiscPage(disc){
       <button class="mode-btn" data-m="hard"><b>Сложные чаще</b><span>Неверные возвращаются в конец</span></button>
       ${hasWrong?`<button class="mode-btn" data-m="wrong" style="border-color:var(--bad)"><b>⚠ Только ошибки</b><span>Вопросы из прошлой сессии</span></button>`:''}
     </div>
-    <button class="modal-x" id="discCancel">← Назад</button>
+    <button class="modal-x" id="discCancel">Назад</button>
   </div>`);
 
   // wire type filters
@@ -1427,7 +1456,7 @@ function reviewAttempt(disc, attIdx){
     ${wrongRows?`<div class="review-section"><h3>Ошибки (${wrongQs.length})</h3>${wrongRows}</div>`:'<p style="color:var(--ok);text-align:center">✓ В этой попытке не было ошибок!</p>'}
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn sm" id="revRetrain" ${wrongQs.length?'':'disabled'}>Тренировать ошибки</button>
-      <button class="modal-x" style="margin:0" id="revBack">← Назад</button>
+      <button class="modal-x" style="margin:0" id="revBack">Назад</button>
     </div>
   </div>`);
   document.getElementById('revBack').onclick=()=>showDiscPage(disc);
@@ -1455,10 +1484,10 @@ function buildCabinet(){
     </div>
     <div id="discRows">${rows}</div>
     <div class="actions" style="margin-top:20px">
-      <button class="btn ghost" id="cabHomeBtn">← К дисциплинам</button>
-      <button class="btn ghost sm" id="cabExportBtn">📤 Экспорт</button>
-      <button class="btn ghost sm" id="cabImportBtn">📥 Импорт</button>
-      <button class="btn ghost sm" id="cabLogoutBtn">🚪 Выйти</button>
+      <button class="btn ghost" id="cabHomeBtn">К дисциплинам</button>
+      <button class="btn ghost sm" id="cabExportBtn">Экспорт</button>
+      <button class="btn ghost sm" id="cabImportBtn">Импорт</button>
+      <button class="btn ghost sm" id="cabLogoutBtn">Выйти</button>
       <button class="btn ghost sm" id="cabResetBtn" style="color:var(--bad);border-color:var(--bad)">Сбросить всё</button>
     </div></div>`;
   show('cabinet');
@@ -1474,7 +1503,7 @@ function buildCabinet(){
     const data=JSON.stringify({name:profile.name,stats:profile.stats,sessions:profile.sessions,theme:profile.theme,uid:getUid()});
     const code=btoa(encodeURIComponent(data));
     openOverlay(`<div class="modal" style="max-width:480px">
-      <h2>📤 Экспорт прогресса</h2>
+      <h2>Экспорт прогресса</h2>
       <p class="sub">Скопируй код. На другом устройстве нажми «Импорт» и вставь его — прогресс подтянется автоматически из облака.</p>
       <textarea id="exportCode" style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none" readonly>${code}</textarea>
       <div style="display:flex;gap:10px;margin-top:12px">
@@ -1492,7 +1521,7 @@ function buildCabinet(){
   document.getElementById('cabImportBtn').onclick=()=>{
     playClick();
     openOverlay(`<div class="modal" style="max-width:480px">
-      <h2>📥 Импорт прогресса</h2>
+      <h2>Импорт прогресса</h2>
       <p class="sub">Вставь код с другого устройства. UID перенесётся — прогресс автоматически загрузится из облака.</p>
       <textarea id="importCode" placeholder="Вставь код сюда..." style="width:100%;height:100px;background:var(--bg2);color:var(--ink);border:1.5px solid var(--line);border-radius:var(--r);padding:10px;font-family:monospace;font-size:12px;resize:none;outline:none"></textarea>
       <div style="display:flex;gap:10px;margin-top:12px">
@@ -1516,7 +1545,7 @@ function buildCabinet(){
         buildCabinet();
         showToast('✅ Прогресс импортирован!');
         // тянем из облака — там может быть ещё более свежая версия
-        pullFromCloud(()=>{ buildCabinet(); showToast('☁️ Обновлено из облака!'); });
+        pullFromCloud(()=>{ buildCabinet(); showToast('Прогресс обновлён из облака'); });
       }catch(e){ showToast('❌ Неверный код.'); }
     };
   };
@@ -1555,7 +1584,7 @@ function showDiscHistory(disc){
     <div class="attempts-list">${rows}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button class="btn sm" id="practiceAgain">Тренировать</button>
-      <button class="modal-x" style="margin:0" id="histClose">← Назад</button>
+      <button class="modal-x" style="margin:0" id="histClose">Назад</button>
     </div></div>`);
   document.getElementById('histClose').onclick=closeOverlay;
   document.getElementById('practiceAgain').onclick=()=>{ closeOverlay(); chooseMode(disc); };
@@ -1568,10 +1597,10 @@ function openThemePicker(){
       style="background:${v.bg};border-color:${profile.theme===k?'var(--ink)':'transparent'}">
       <div style="position:absolute;inset:4px;border-radius:50%;background:${v.accent}"></div>
     </div>`).join('');
-  openOverlay(`<div class="modal"><h2>🎨 Тема оформления</h2>
+  openOverlay(`<div class="modal"><h2>Тема оформления</h2>
     <div class="theme-grid">${swatches}</div>
     <div style="margin-top:8px;color:var(--muted);font-size:13px">${Object.values(THEMES).map(v=>v.label).join(' · ')}</div>
-    <button class="modal-x" id="themeClose">← Закрыть</button></div>`);
+    <button class="modal-x" id="themeClose">Закрыть</button></div>`);
   document.querySelectorAll('.theme-swatch').forEach(s=>s.onclick=()=>{ playClick(); applyTheme(s.dataset.t); closeOverlay(); openThemePicker(); });
   document.getElementById('themeClose').onclick=closeOverlay;
 }
@@ -1671,7 +1700,7 @@ function initGate(){
       document.getElementById('gateCode').classList.remove('hidden');
       setTimeout(()=>codeIn.focus(),100);
     } else {
-      emailGo.disabled=false; emailGo.textContent='Получить код ✦';
+      emailGo.disabled=false; emailGo.textContent='Получить код';
       showToast('Ошибка отправки. Попробуй ещё раз.');
     }
   };
@@ -1692,7 +1721,7 @@ function initGate(){
       await pullFromCloud();
       buildHome(); show('home'); owlNeutral('Добро пожаловать! 🦉');
     } else {
-      codeGo.disabled=false; codeGo.textContent='Войти →';
+      codeGo.disabled=false; codeGo.textContent='Войти';
       showToast('Неверный код. Попробуй ещё раз.');
     }
   };
@@ -1703,7 +1732,7 @@ function initGate(){
   document.getElementById('emailBack').onclick=()=>{
     document.getElementById('gateEmail').classList.remove('hidden');
     document.getElementById('gateCode').classList.add('hidden');
-    emailGo.disabled=false; emailGo.textContent='Получить код ✦';
+    emailGo.disabled=false; emailGo.textContent='Получить код';
     codeIn.value='';
   };
   setTimeout(()=>emailIn.focus(),100);
