@@ -1804,6 +1804,9 @@ function initGate(){
     document.getElementById('emailShown').textContent=email;
     document.getElementById('gateEmail').classList.add('hidden');
     document.getElementById('gateCode').classList.remove('hidden');
+    codeGo.disabled=false;
+    codeGo.textContent='Войти';
+    codeIn.value='';
     setTimeout(()=>codeIn.focus(),100);
   };
 
