@@ -1725,11 +1725,11 @@ document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\
   if(token){
     const user=await sbGetUser(token);
     if(user){
-      _authToken=token; // восстанавливаем токен из localStorage
+      _authToken=token;
       localStorage.setItem('trainer_uid',user.id);
       if(!profile.name){ profile.name=user.email.split('@')[0]; save(); }
-      await pullFromCloud();
       buildHome(); show('home'); owlNeutral('Выбери дисциплину — и вперёд!');
+      await pullFromCloud(()=>{ buildHome(); });
       return;
     }
   }
