@@ -660,8 +660,22 @@ function setSyncIcon(s){
   const tips={sync:'Синхронизация...',ok:'Прогресс сохранён в облаке',err:'Нет соединения — прогресс в localStorage'};
   el.textContent=icons[s]||'☁️'; el.title=tips[s]||''; el.style.opacity=s==='err'?'.45':'1';
 }
+async function ensureFreshToken(){
+  if(!_authToken) return false;
+  try{
+    const payload=JSON.parse(atob(_authToken.split('.')[1]));
+    if(payload.exp<(Date.now()/1000)+30){
+      const refreshed=await sbRefresh();
+      if(refreshed){ _authToken=refreshed; return true; }
+      return false;
+    }
+    return true;
+  }catch(e){ return false; }
+}
+
 async function pushToCloud(){
   if(!_authToken){setSyncIcon('err');console.warn('pushToCloud: no token');return;}
+  await ensureFreshToken();
   setSyncIcon('sync');
   const now=Date.now();
   profile.updatedAt=now;
@@ -691,6 +705,7 @@ async function pushToCloud(){
 }
 async function pullFromCloud(onLoaded){
   if(!_authToken){setSyncIcon('err');return;}
+  await ensureFreshToken();
   setSyncIcon('sync');
   try{
     const res=await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(getUid())}&select=data,updated_at`,{
