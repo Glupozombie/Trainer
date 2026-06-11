@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Тренажёр аккредитации</title>
+<title>Accreditation Trainer</title>
 <style>
 /* ============ THEMES ============ */
 :root{
@@ -448,20 +448,20 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 <div class="wrap">
   <section id="gate" class="hidden"><div class="gate-wrap">
     <div style="font-size:56px;margin-bottom:8px" id="gateOwl"></div>
-    <div class="gate-logo" id="gate-logo-txt">Тренажёр аккредитации</div>
+    <div class="gate-logo" id="gate-logo-txt"></div>
     <p class="gate-sub" id="gateSub"></p>
     <!-- ВХОД ПО ПАРОЛЮ -->
     <div id="gateLogin">
       <input class="gate-input" id="emailIn" placeholder="email" type="email" autocomplete="email">
-      <input class="gate-input" id="passIn" placeholder="Пароль" type="password" autocomplete="current-password" style="margin-top:10px">
-      <button class="btn gate-btn" id="loginGo">Войти</button>
+      <input class="gate-input" id="passIn" placeholder="" type="password" autocomplete="current-password" style="margin-top:10px">
+      <button class="btn gate-btn" id="loginGo"></button>
       <div style="display:flex;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:6px">
         <button class="gate-link" id="toRegister"></button>
         <button class="gate-link" id="otpLink"></button>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--muted)">
         <div style="flex:1;height:1px;background:var(--line)"></div>
-        <span style="font-size:12px">или</span>
+        <span style="font-size:12px" id="orSep"></span>
         <div style="flex:1;height:1px;background:var(--line)"></div>
       </div>
       <button class="btn ghost" style="margin-top:12px;width:100%;justify-content:center;font-size:13px;color:var(--muted)" id="guestBtn"></button>
@@ -469,7 +469,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
     <!-- РЕГИСТРАЦИЯ -->
     <div id="gateRegister" class="hidden">
       <input class="gate-input" id="regEmail" placeholder="email" type="email" autocomplete="email">
-      <input class="gate-input" id="regPass" placeholder="Придумай пароль" type="password" autocomplete="new-password" style="margin-top:10px">
+      <input class="gate-input" id="regPass" placeholder="" type="password" autocomplete="new-password" style="margin-top:10px">
       <div class="pw-meter"><i id="pwFill"></i></div>
       <div class="pw-label" id="pwLabel"></div>
       <button class="btn gate-btn" id="regGo"></button>
@@ -484,16 +484,16 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
       <button class="btn ghost" style="margin-top:8px;width:100%;justify-content:center;font-size:13px" id="otpBack"></button>
     </div>
     <div id="gateCode" class="hidden">
-      <p style="font-size:14px;color:var(--muted);margin:0 0 16px">Код отправлен на <span id="emailShown" style="color:var(--ink)"></span></p>
-      <input class="gate-input" id="codeIn" placeholder="Введи код из письма" type="text" maxlength="8" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:22px;letter-spacing:4px">
-      <button class="btn gate-btn" id="codeGo">Войти</button>
-      <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack">Другой email</button>
+      <p style="font-size:14px;color:var(--muted);margin:0 0 16px"><span id="codeSentTxt"></span> <span id="emailShown" style="color:var(--ink)"></span></p>
+      <input class="gate-input" id="codeIn" placeholder="" type="text" maxlength="8" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-size:22px;letter-spacing:4px">
+      <button class="btn gate-btn" id="codeGo"></button>
+      <button class="btn ghost" style="margin-top:10px;width:100%;justify-content:center" id="emailBack"></button>
     </div>
   </div></section>
 
   <section id="home" class="hidden">
     <div class="home-top">
-      <h1 id="homeGreet">Тренажёр</h1>
+      <h1 id="homeGreet"></h1>
       <div class="home-top-actions">
         <button class="btn ghost sm" id="soundBtn">🔊</button>
         <span id="syncIcon" title="Cloud sync" style="font-size:17px;cursor:default;line-height:1;padding:2px 4px">☁️</span>
@@ -504,7 +504,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
     </div>
     <p class="sub" id="homeSub"></p>
     <div class="owl-wrap"><svg id="owlSvg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"></svg></div>
-    <div class="owl-msg" id="owlMsg">Выбери дисциплину — и вперёд!</div>
+    <div class="owl-msg" id="owlMsg"></div>
     <div class="grid" id="homeGrid"></div>
   </section>
 
@@ -715,6 +715,94 @@ var LANGS = {
     // Changelog
     cl_title:'Accreditation Trainer',
     cl_sub:'What\'s new',
+    // i18n coverage additions
+    or_sep:'or',
+    other_email:'Different email',
+    password_ph:'Password',
+    new_password_ph:'Create a password',
+    new_password_ph2:'New password',
+    nav_title:'Question navigation',
+    nav_unanswered:'Not answered',
+    nav_partial:'Partial/hint',
+    nav_skipped:'Skipped',
+    choose_option:'Choose an option!',
+    enter_answer:'Enter your answer!',
+    fill_matches:'Fill in all the matches!',
+    fb_correct:'✓ Correct!',
+    fb_wrong:'✗ Wrong',
+    fb_partial:'〜 Partially correct (check spelling)',
+    fb_hinted:'👁 Correct, but you peeked — counted as wrong',
+    fb_counted:'✓ Counted!',
+    fb_almost:'〜 Almost correct — sent back for review',
+    fb_marked_wrong:'✗ Marked as wrong',
+    counted_hinted:'Counted as wrong (answer was shown)',
+    skipped_title:'Skipped',
+    skip_note:'The question will come back at the end',
+    ref_answer:'Reference answer',
+    sg_yes:'✓ Correct',
+    sg_almost:'〜 Almost correct',
+    sg_no:'✗ Wrong',
+    type_multi:'Multiple choice',
+    type_self:'Open answer',
+    type_numeric:'Numeric answer',
+    type_short:'Short answer',
+    type_matching:'Matching',
+    type_ordering:'Ordering',
+    choose_dd:'— choose —',
+    formula_lbl:'(formula)',
+    option_n:(n)=>`option ${n}`,
+    assoc_show:'💡 Association',
+    assoc_hide:'💡 Hide',
+    assoc_fallback:'Recall the key term for this topic.',
+    ms25_t:'Great start!', ms25_s:'A quarter of the way done',
+    ms50_t:'Halfway there!', ms50_s:'You\'re on fire, keep going',
+    ms75_t:'Almost finished!', ms75_s:'75% of questions behind you',
+    ms100_t:'All done!', ms100_s:'Moving on to the results...',
+    rt_title:'All errors cleared!',
+    rt_sub:'Want to practice these questions again or move on?',
+    rt_again:'Run through the errors again',
+    rt_again_sub:'The same questions once more',
+    rt_all:'📚 Go to the full test',
+    rt_all_sub:'All questions of the discipline',
+    rt_results:'View results →',
+    no_wrong_disc:'No wrong answers for this discipline!',
+    no_q_filters:'No questions match the selected filters!',
+    no_back:'Nothing to go back to',
+    result_lbl:'Score',
+    best_lbl:'Best',
+    time_lbl:'Time',
+    exit_title:'Exit the test?',
+    exit_sub:(n,tt,m)=>`Question ${n} of ${tt} · mastered ${m}`,
+    save_exit_sub:'The test will be paused — you can continue later',
+    exit_cont:'Continue test',
+    unfinished40:'Unfinished 40-question test',
+    resume_sub:'Pick up where you left off',
+    new40_sub:'40 new random questions',
+    start_new:'Start a new test',
+    start_new_sub:'Progress of the unfinished test will be lost',
+    best_pct:(p)=>`Best: ${p}%`,
+    start_attempt:'Start a new attempt',
+    tf_choice:'🔘 Choice',
+    tf_answer:'✏️ Answer',
+    tf_matching:'🔗 Matching',
+    tf_order:'↕️ Order',
+    review_btn:'Review',
+    prev_attempts:'Previous attempts',
+    date_lbl:'Date',
+    no_attempts:'📋 No attempts yet. Start your first one!',
+    theme_title:'Theme',
+    theme_dark:'🌙 Dark', theme_light:'☀️ Light', theme_pink:'🌸 Dark pink', theme_pink_light:'🌷 Light pink', theme_gold:'✨ Gold', theme_midnight:'🌌 Midnight',
+    sync_ing:'Syncing...',
+    sync_ok:'Progress saved to the cloud',
+    sync_err:'No connection — progress stored locally',
+    owl_correct:'🎉 Correct! Great job!',
+    owl_wrong:'😔 No worries! Remember the right answer.',
+    owl_clicks:['Hoo-hoo! You can do it!','Owls are wise. So are you!','Let\'s study!','I like your progress!','🦉 Study hard!'],
+    cl_new:'New',
+    cl_current:'current version',
+    cl_start:'Got it, let\'s start',
+    pw_levels:['AWFUL','Very weak','Weak','Medium','Good','Strong','LEGENDARY'],
+    saving_btn:'Saving...',
   },
   ru: {
     flag:'🇷🇺', name:'Русский',
@@ -888,6 +976,94 @@ var LANGS = {
     ms_100:'Готово! Отличная работа!',
     cl_title:'Тренажёр аккредитации',
     cl_sub:'История изменений',
+    // i18n coverage additions
+    or_sep:'или',
+    other_email:'Другой email',
+    password_ph:'Пароль',
+    new_password_ph:'Придумай пароль',
+    new_password_ph2:'Новый пароль',
+    nav_title:'Навигация по вопросам',
+    nav_unanswered:'Не отвечен',
+    nav_partial:'Частично/подсказка',
+    nav_skipped:'Пропущен',
+    choose_option:'Выбери вариант!',
+    enter_answer:'Введи ответ!',
+    fill_matches:'Заполни все соответствия!',
+    fb_correct:'✓ Верно!',
+    fb_wrong:'✗ Неверно',
+    fb_partial:'〜 Частично верно (проверь написание)',
+    fb_hinted:'👁 Верно, но подсмотрел — засчитано как неверное',
+    fb_counted:'✓ Засчитано!',
+    fb_almost:'〜 Почти верно — отправлено на доработку',
+    fb_marked_wrong:'✗ Отмечено как неверное',
+    counted_hinted:'Засчитано как неверное (подсмотрел)',
+    skipped_title:'Пропущено',
+    skip_note:'Вопрос вернётся в конце',
+    ref_answer:'Эталонный ответ',
+    sg_yes:'✓ Верно',
+    sg_almost:'〜 Почти верно',
+    sg_no:'✗ Неверно',
+    type_multi:'Выбор ответа',
+    type_self:'Развёрнутый ответ',
+    type_numeric:'Числовой ответ',
+    type_short:'Краткий ответ',
+    type_matching:'Сопоставление',
+    type_ordering:'Порядок действий',
+    choose_dd:'— выбери —',
+    formula_lbl:'(формула)',
+    option_n:(n)=>`вариант ${n}`,
+    assoc_show:'💡 Ассоциация',
+    assoc_hide:'💡 Скрыть',
+    assoc_fallback:'Вспомни ключевой термин по теме.',
+    ms25_t:'Хорошее начало!', ms25_s:'Четверть пути позади',
+    ms50_t:'Половина!', ms50_s:'Ты в ударе, не останавливайся',
+    ms75_t:'Почти финиш!', ms75_s:'75% вопросов за плечами',
+    ms100_t:'Всё пройдено!', ms100_s:'Переходим к результатам...',
+    rt_title:'Все ошибки проработаны!',
+    rt_sub:'Хочешь ещё потренировать эти вопросы или двигаться дальше?',
+    rt_again:'Ещё раз прогнать ошибки',
+    rt_again_sub:'Те же вопросы заново',
+    rt_all:'📚 Перейти к полному тесту',
+    rt_all_sub:'Все вопросы дисциплины',
+    rt_results:'Посмотреть результаты →',
+    no_wrong_disc:'Нет неверных ответов для этой дисциплины!',
+    no_q_filters:'Нет вопросов по выбранным фильтрам!',
+    no_back:'Некуда возвращаться',
+    result_lbl:'Результат',
+    best_lbl:'Лучший',
+    time_lbl:'Время',
+    exit_title:'Выйти из теста?',
+    exit_sub:(n,tt,m)=>`Вопрос ${n} из ${tt} · освоено ${m}`,
+    save_exit_sub:'Тест поставится на паузу — можно продолжить позже',
+    exit_cont:'Продолжить тест',
+    unfinished40:'Незавершённый тест 40 вопросов',
+    resume_sub:'С того места, где остановился',
+    new40_sub:'40 новых случайных вопросов',
+    start_new:'Начать новый тест',
+    start_new_sub:'Прогресс незавершённого будет потерян',
+    best_pct:(p)=>`Лучший: ${p}%`,
+    start_attempt:'Начать новую попытку',
+    tf_choice:'🔘 Выбор',
+    tf_answer:'✏️ Ответ',
+    tf_matching:'🔗 Сопоставление',
+    tf_order:'↕️ Порядок',
+    review_btn:'Просмотреть',
+    prev_attempts:'Предыдущие попытки',
+    date_lbl:'Дата',
+    no_attempts:'📋 Попыток ещё не было. Начни первую!',
+    theme_title:'Тема оформления',
+    theme_dark:'🌙 Тёмная', theme_light:'☀️ Светлая', theme_pink:'🌸 Тёмно-розовая', theme_pink_light:'🌷 Светло-розовая', theme_gold:'✨ Золотая', theme_midnight:'🌌 Полночь',
+    sync_ing:'Синхронизация...',
+    sync_ok:'Прогресс сохранён в облаке',
+    sync_err:'Нет соединения — прогресс в localStorage',
+    owl_correct:'🎉 Правильно! Отличная работа!',
+    owl_wrong:'😔 Не беда! Запомни правильный ответ.',
+    owl_clicks:['Ухуху! Ты справишься!','Совы мудрые. Ты тоже!','Давай учиться!','Мне нравится твой прогресс!','🦉 Учись усердно!'],
+    cl_new:'Новое',
+    cl_current:'текущая версия',
+    cl_start:'Понятно, начать',
+    pw_levels:['УЖАС','Очень слабый','Слабый','Средний','Хороший','Сильный','ЛЕГЕНДАРНЫЙ'],
+    saving_btn:'Сохраняем...',
   },
   nl: {
     flag:'🇳🇱', name:'Nederlands',
@@ -1061,6 +1237,94 @@ var LANGS = {
     ms_100:'Klaar! Geweldig gedaan!',
     cl_title:'Accreditatietrainer',
     cl_sub:'Versiegeschiedenis',
+    // i18n coverage additions
+    or_sep:'of',
+    other_email:'Ander e-mailadres',
+    password_ph:'Wachtwoord',
+    new_password_ph:'Bedenk een wachtwoord',
+    new_password_ph2:'Nieuw wachtwoord',
+    nav_title:'Vraagnavigatie',
+    nav_unanswered:'Niet beantwoord',
+    nav_partial:'Gedeeltelijk/hint',
+    nav_skipped:'Overgeslagen',
+    choose_option:'Kies een optie!',
+    enter_answer:'Voer je antwoord in!',
+    fill_matches:'Vul alle combinaties in!',
+    fb_correct:'✓ Juist!',
+    fb_wrong:'✗ Onjuist',
+    fb_partial:'〜 Gedeeltelijk juist (controleer de spelling)',
+    fb_hinted:'👁 Juist, maar je hebt gespiekt — geteld als fout',
+    fb_counted:'✓ Geteld!',
+    fb_almost:'〜 Bijna goed — komt terug ter herhaling',
+    fb_marked_wrong:'✗ Gemarkeerd als fout',
+    counted_hinted:'Geteld als fout (antwoord was getoond)',
+    skipped_title:'Overgeslagen',
+    skip_note:'De vraag komt aan het einde terug',
+    ref_answer:'Modelantwoord',
+    sg_yes:'✓ Juist',
+    sg_almost:'〜 Bijna goed',
+    sg_no:'✗ Onjuist',
+    type_multi:'Meerkeuze',
+    type_self:'Open antwoord',
+    type_numeric:'Numeriek antwoord',
+    type_short:'Kort antwoord',
+    type_matching:'Matchen',
+    type_ordering:'Volgorde',
+    choose_dd:'— kies —',
+    formula_lbl:'(formule)',
+    option_n:(n)=>`optie ${n}`,
+    assoc_show:'💡 Associatie',
+    assoc_hide:'💡 Verbergen',
+    assoc_fallback:'Denk aan de kernterm van dit onderwerp.',
+    ms25_t:'Goed begin!', ms25_s:'Een kwart van de weg is afgelegd',
+    ms50_t:'Halverwege!', ms50_s:'Je bent op dreef, ga zo door',
+    ms75_t:'Bijna klaar!', ms75_s:'75% van de vragen zit erop',
+    ms100_t:'Alles voltooid!', ms100_s:'Op naar de resultaten...',
+    rt_title:'Alle fouten weggewerkt!',
+    rt_sub:'Wil je deze vragen nog eens oefenen of doorgaan?',
+    rt_again:'Fouten nog een keer doorlopen',
+    rt_again_sub:'Dezelfde vragen opnieuw',
+    rt_all:'📚 Naar de volledige toets',
+    rt_all_sub:'Alle vragen van het vak',
+    rt_results:'Resultaten bekijken →',
+    no_wrong_disc:'Geen foute antwoorden voor dit vak!',
+    no_q_filters:'Geen vragen voor de gekozen filters!',
+    no_back:'Niets om naar terug te gaan',
+    result_lbl:'Resultaat',
+    best_lbl:'Beste',
+    time_lbl:'Tijd',
+    exit_title:'Toets verlaten?',
+    exit_sub:(n,tt,m)=>`Vraag ${n} van ${tt} · beheerst ${m}`,
+    save_exit_sub:'De toets wordt gepauzeerd — je kunt later verdergaan',
+    exit_cont:'Doorgaan met de toets',
+    unfinished40:'Onvoltooide toets van 40 vragen',
+    resume_sub:'Verder waar je gebleven was',
+    new40_sub:'40 nieuwe willekeurige vragen',
+    start_new:'Nieuwe toets starten',
+    start_new_sub:'Voortgang van de onvoltooide toets gaat verloren',
+    best_pct:(p)=>`Beste: ${p}%`,
+    start_attempt:'Nieuwe poging starten',
+    tf_choice:'🔘 Keuze',
+    tf_answer:'✏️ Antwoord',
+    tf_matching:'🔗 Matchen',
+    tf_order:'↕️ Volgorde',
+    review_btn:'Bekijken',
+    prev_attempts:'Eerdere pogingen',
+    date_lbl:'Datum',
+    no_attempts:'📋 Nog geen pogingen. Begin je eerste!',
+    theme_title:'Thema',
+    theme_dark:'🌙 Donker', theme_light:'☀️ Licht', theme_pink:'🌸 Donkerroze', theme_pink_light:'🌷 Lichtroze', theme_gold:'✨ Goud', theme_midnight:'🌌 Middernacht',
+    sync_ing:'Synchroniseren...',
+    sync_ok:'Voortgang opgeslagen in de cloud',
+    sync_err:'Geen verbinding — voortgang lokaal opgeslagen',
+    owl_correct:'🎉 Juist! Goed gedaan!',
+    owl_wrong:'😔 Geen probleem! Onthoud het juiste antwoord.',
+    owl_clicks:['Oehoe! Jij kunt dit!','Uilen zijn wijs. Jij ook!','Laten we leren!','Ik ben blij met je voortgang!','🦉 Studeer hard!'],
+    cl_new:'Nieuw',
+    cl_current:'huidige versie',
+    cl_start:'Begrepen, starten',
+    pw_levels:['VRESELIJK','Erg zwak','Zwak','Gemiddeld','Goed','Sterk','LEGENDARISCH'],
+    saving_btn:'Opslaan...',
   }
 };
 
@@ -1248,7 +1512,7 @@ function getUid(){
 function setSyncIcon(s){
   const el=document.getElementById('syncIcon'); if(!el)return;
   const icons={sync:'🔄',ok:'☁️',err:'⚡'};
-  const tips={sync:'Синхронизация...',ok:'Прогресс сохранён в облаке',err:'Нет соединения — прогресс в localStorage'};
+  const tips={sync:t('sync_ing'),ok:t('sync_ok'),err:t('sync_err')};
   el.textContent=icons[s]||'☁️'; el.title=tips[s]||''; el.style.opacity=s==='err'?'.45':'1';
 }
 async function ensureFreshToken(){
@@ -1353,12 +1617,12 @@ function buildOwl(size=80){
 }
 function owlHappy(){
   document.getElementById('owlSvg').style.animation='owlBounce .6s ease';
-  owlMsg('🎉 Правильно! Отличная работа!');
+  owlMsg(t('owl_correct'));
   setTimeout(()=>document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite',700);
 }
 function owlSad(){
   document.getElementById('owlSvg').style.animation='owlShake .5s ease';
-  owlMsg('😔 Не беда! Запомни правильный ответ.');
+  owlMsg(t('owl_wrong'));
   setTimeout(()=>document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite',600);
 }
 function owlNeutral(msg){ document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite'; owlMsg(msg||''); }
@@ -1366,12 +1630,12 @@ function owlMsg(t){ const el=document.getElementById('owlMsg'); if(el) el.textCo
 
 /* ========== THEMES ========== */
 const THEMES={
-  dark:{label:'🌙 Тёмная',bg:'#1e1b18',accent:'#d97757'},
-  light:{label:'☀️ Светлая',bg:'#f5f0e8',accent:'#d97757'},
-  pink:{label:'🌸 Тёмно-розовая',bg:'#1a1018',accent:'#e06fa0'},
-  'pink-light':{label:'🌷 Светло-розовая',bg:'#fff0f5',accent:'#d4477a'},
-  gold:{label:'✨ Золотая',bg:'#16140e',accent:'#d4a020'},
-  midnight:{label:'🌌 Полночь',bg:'#0e1020',accent:'#6080e0'}
+  dark:{labelKey:'theme_dark',bg:'#1e1b18',accent:'#d97757'},
+  light:{labelKey:'theme_light',bg:'#f5f0e8',accent:'#d97757'},
+  pink:{labelKey:'theme_pink',bg:'#1a1018',accent:'#e06fa0'},
+  'pink-light':{labelKey:'theme_pink_light',bg:'#fff0f5',accent:'#d4477a'},
+  gold:{labelKey:'theme_gold',bg:'#16140e',accent:'#d4a020'},
+  midnight:{labelKey:'theme_midnight',bg:'#0e1020',accent:'#6080e0'}
 };
 function applyTheme(t){ document.body.dataset.theme=t; profile.theme=t; save(); }
 applyTheme(profile.theme||'dark');
@@ -1409,10 +1673,10 @@ function startSession(disc, mode, filterTypes){
     const prev=profile.stats[disc||'__all__'];
     const wrongIds=new Set(prev?.lastWrong||[]);
     if(wrongIds.size>0) pool=pool.filter(q=>wrongIds.has(q._id));
-    else{ showToast('Нет неверных ответов для этой дисциплины!'); return; }
+    else{ showToast(t('no_wrong_disc')); return; }
   }
   if(filterTypes&&filterTypes.length) pool=pool.filter(q=>filterTypes.includes(q.type));
-  if(!pool.length){ showToast('Нет вопросов по выбранным фильтрам!'); return; }
+  if(!pool.length){ showToast(t('no_q_filters')); return; }
   let order=pool.map((_,i)=>i);
   if(mode==='random'||mode==='wrong') shuffle(order);
   // hard: sequential, wrong re-queued
@@ -1445,17 +1709,17 @@ function updateNav(){
     let cls=''; const r=session.history.slice().reverse().find(h=>h.pid===i);
     if(r) cls=r.result;
     if(i===session.currentPid) cls='current';
-    return `<div class="nav-dot ${cls}" data-pid="${i}" title="Вопрос ${i+1}">${i+1}</div>`;
+    return `<div class="nav-dot ${cls}" data-pid="${i}" title="${t('question_n',i+1,session.total)}">${i+1}</div>`;
   }).join('');
   strip.innerHTML=`
-    <div class="nav-strip-label">Навигация по вопросам</div>
+    <div class="nav-strip-label">${t('nav_title')}</div>
     <div class="nav-grid">${dots}</div>
     <div class="nav-legend">
-      <span><i style="background:var(--bg2);border:1.5px solid var(--line)"></i>Не отвечен</span>
+      <span><i style="background:var(--bg2);border:1.5px solid var(--line)"></i>${t('nav_unanswered')}</span>
       <span><i style="background:var(--ok-soft);border:1.5px solid var(--ok)"></i>${t('correct')}</span>
       <span><i style="background:var(--bad-soft);border:1.5px solid var(--bad)"></i>${t('wrong')}</span>
-      <span><i style="background:var(--partial-soft);border:1.5px solid var(--partial)"></i>Частично/подсказка</span>
-      <span><i style="background:var(--skip-soft);border:1.5px solid var(--skip)"></i>Пропущен</span>
+      <span><i style="background:var(--partial-soft);border:1.5px solid var(--partial)"></i>${t('nav_partial')}</span>
+      <span><i style="background:var(--skip-soft);border:1.5px solid var(--skip)"></i>${t('nav_skipped')}</span>
     </div>`;
   strip.querySelectorAll('.nav-dot').forEach(d=>d.onclick=()=>jumpTo(+d.dataset.pid));
 }
@@ -1471,7 +1735,7 @@ function jumpTo(pid){
 }
 function goBack(){
   const last=session.history[session.history.length-1];
-  if(!last){ showToast('Некуда возвращаться'); return; }
+  if(!last){ showToast(t('no_back')); return; }
   // undo result
   session.firstSeen.delete(session.pool[last.pid]._id);
   session.firstCorrect.delete(session.pool[last.pid]._id);
@@ -1500,11 +1764,11 @@ function nextQ(){
 function renderQ(q,pid,anim){
   if(q.type==='multichoice'&&!q._opts) q._opts=shuffle(q.options.slice());
   if(q.type==='ordering'&&!q._shuf){ q._shuf=shuffle(q.ordered.slice()); if(q.ordered.length>1&&q._shuf.every((t,i)=>t===q.ordered[i])) q._shuf.reverse(); }
-  const typeRu={multichoice:'Выбор ответа',shortanswer:q.mode==='self'?'Развёрнутый ответ':q.mode==='numeric'?'Числовой ответ':'Краткий ответ',matching:'Сопоставление',ordering:'Порядок действий'}[q.type]||q.type;
+  const typeRu={multichoice:t('type_multi'),shortanswer:q.mode==='self'?t('type_self'):q.mode==='numeric'?t('type_numeric'):t('type_short'),matching:t('type_matching'),ordering:t('type_ordering')}[q.type]||q.type;
   const typeIcon={multichoice:'🔘',shortanswer:'✏️',matching:'🔗',ordering:'↕️'}[q.type]||'❓';
   let body='';
   if(q.type==='multichoice') body=renderMC(q);
-  else if(q.type==='shortanswer') body=`<textarea class="qinput" id="txtIn" placeholder="Введи ответ..."></textarea>`;
+  else if(q.type==='shortanswer') body=`<textarea class="qinput" id="txtIn" placeholder="${t('enter_answer')}"></textarea>`;
   else if(q.type==='matching') body=renderMatch(q);
   else if(q.type==='ordering') body=renderOrder(q);
   const card=document.getElementById('qCard');
@@ -1518,14 +1782,14 @@ function renderQ(q,pid,anim){
     <div id="ansArea">${body}</div>
     <div class="actions">
       <button class="btn" id="checkBtn">${t('check')}</button>
-      <button class="btn ghost hidden" id="nextBtn">Далее →</button>
+      <button class="btn ghost hidden" id="nextBtn">${t('next')} →</button>
       <button class="btn ghost sm" id="skipBtn">${t('skip')}</button>
-      <button class="btn ghost sm" id="backBtn" ${session.history.length===0?'disabled':''}>Назад</button>
+      <button class="btn ghost sm" id="backBtn" ${session.history.length===0?'disabled':''}>${t('back')}</button>
     </div>
     <div id="fbArea"></div>
     <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px">
       <button class="hint-link" id="hintBtn">${t('show_answer')}</button>
-      <span style="font-size:11.5px;color:var(--muted);margin-left:auto">Вопрос ${pid+1} / ${session.total}</span>
+      <span style="font-size:11.5px;color:var(--muted);margin-left:auto">${t('question_n',pid+1,session.total)}</span>
     </div>
     <div id="hintArea"></div>`;
   // delays on opts
@@ -1541,11 +1805,11 @@ function renderMatch(q){
   const allRights=q.pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
   const rights=shuffle(allRights.slice());
   return `<table class="match-table"><tbody>`+q.pairs.map((p,i)=>{
-    const leftDisplay=p.left||'<span style="color:var(--muted);font-size:12px">(формула)</span>';
+    const leftDisplay=p.left||`<span style="color:var(--muted);font-size:12px">${t('formula_lbl')}</span>`;
     return `<tr data-i="${i}">
       <td class="match-left">${leftDisplay}</td>
-      <td><select data-i="${i}"><option value="-1">— выбери —</option>
-        ${rights.map((r,ri)=>`<option value="${allRights.indexOf(r)}">${stripTags(r)||(` вариант ${ri+1}`)}</option>`).join('')}
+      <td><select data-i="${i}"><option value="-1">${t('choose_dd')}</option>
+        ${rights.map((r,ri)=>`<option value="${allRights.indexOf(r)}">${stripTags(r)||(' '+t('option_n',ri+1))}</option>`).join('')}
       </select></td></tr>`;
   }).join('')+`</tbody></table>`;
 }
@@ -1610,22 +1874,22 @@ function doAssoc(q){
   const btn=document.getElementById('assocBtn'); if(!btn) return;
   playClick();
   // toggle
-  if(area.innerHTML){area.innerHTML='';btn.textContent='💡 Ассоциация';return;}
-  btn.textContent='💡 Скрыть';
+  if(area.innerHTML){area.innerHTML='';btn.textContent=t('assoc_show');return;}
+  btn.textContent=t('assoc_hide');
   // use _id (global index) — reliable even when question texts are identical
   const idx = q._id !== undefined ? q._id : DATA.questions.findIndex(
     (dq,i) => dq.discipline===q.discipline && dq.question===q.question
   );
-  const text=ASSOCS[idx]||ASSOCS[String(idx)]||'Вспомни ключевой термин по теме.';
+  const text=ASSOCS[idx]||ASSOCS[String(idx)]||t('assoc_fallback');
   area.innerHTML=`<div class="assoc-popup" style="margin-top:10px"><div class="assoc-icon">💡</div><div class="assoc-text">${text}</div></div>`;
 }
 
 /* ========== MILESTONES ========== */
 const MILESTONES=[
-  {at:25,emoji:'🌱',title:'Хорошее начало!',sub:'Четверть пути позади',stars:'⭐'},
-  {at:50,emoji:'🔥',title:'Половина!',sub:'Ты в ударе, не останавливайся',stars:'⭐⭐'},
-  {at:75,emoji:'💪',title:'Почти финиш!',sub:'75% вопросов за плечами',stars:'⭐⭐⭐'},
-  {at:100,emoji:'🏆',title:'Всё пройдено!',sub:'Переходим к результатам...',stars:'⭐⭐⭐⭐'},
+  {at:25,emoji:'🌱',titleKey:'ms25_t',subKey:'ms25_s',stars:'⭐'},
+  {at:50,emoji:'🔥',titleKey:'ms50_t',subKey:'ms50_s',stars:'⭐⭐'},
+  {at:75,emoji:'💪',titleKey:'ms75_t',subKey:'ms75_s',stars:'⭐⭐⭐'},
+  {at:100,emoji:'🏆',titleKey:'ms100_t',subKey:'ms100_s',stars:'⭐⭐⭐⭐'},
 ];
 const _shownMilestones=new Set();
 function checkMilestone(){
@@ -1639,8 +1903,8 @@ function checkMilestone(){
 function showMilestone(m){
   const el=document.createElement('div'); el.className='milestone-wrap';
   el.innerHTML=`<span class="milestone-emoji">${m.emoji}</span>
-    <div class="milestone-title">${m.title}</div>
-    <div class="milestone-sub">${m.sub}</div>
+    <div class="milestone-title">${t(m.titleKey)}</div>
+    <div class="milestone-sub">${t(m.subKey)}</div>
     <div class="milestone-stars">${m.stars}</div>`;
   document.body.appendChild(el);
   // звук победы
@@ -1652,12 +1916,12 @@ function showMilestone(m){
 function askRetrain(){
   openOverlay(`<div class="modal" style="text-align:center">
     <div style="font-size:48px;margin-bottom:12px">🦉</div>
-    <h2>Все ошибки проработаны!</h2>
-    <p class="sub">Хочешь ещё потренировать эти вопросы или двигаться дальше?</p>
+    <h2>${t('rt_title')}</h2>
+    <p class="sub">${t('rt_sub')}</p>
     <div class="mode-list">
-      <button class="mode-btn" id="rtrainYes"><b>Ещё раз прогнать ошибки</b><span>Те же вопросы заново</span></button>
-      <button class="mode-btn" id="rtrainAll"><b>📚 Перейти к полному тесту</b><span>Все вопросы дисциплины</span></button>
-      <button class="modal-x" id="rtrainNo">Посмотреть результаты →</button>
+      <button class="mode-btn" id="rtrainYes"><b>${t('rt_again')}</b><span>${t('rt_again_sub')}</span></button>
+      <button class="mode-btn" id="rtrainAll"><b>${t('rt_all')}</b><span>${t('rt_all_sub')}</span></button>
+      <button class="modal-x" id="rtrainNo">${t('rt_results')}</button>
     </div></div>`);
   document.getElementById('rtrainYes').onclick=()=>{ closeOverlay(); _shownMilestones.clear(); startSession(session.disc,'wrong'); };
   document.getElementById('rtrainAll').onclick=()=>{ closeOverlay(); _shownMilestones.clear(); startSession(session.disc,'order'); };
@@ -1675,9 +1939,9 @@ function doHint(q,pid){
   document.getElementById('hintBtn').disabled=true;
   document.getElementById('hintBtn').style.opacity='0.5';
   area.innerHTML=`<div class="assoc-popup" style="border-color:var(--partial);margin-top:10px">
-    <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--partial)">Правильный ответ</div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--partial)">${t('correct_answer')}</div>
     <div class="assoc-text">${correctOf(q)}</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:6px">Вопрос будет засчитан как неверный</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px">${t('hint_note')}</div>
   </div>`;
 }
 
@@ -1688,7 +1952,7 @@ function doSkip(q,pid){
   document.getElementById('checkBtn').classList.add('hidden');
   document.getElementById('skipBtn').classList.add('hidden');
   document.getElementById('nextBtn').classList.remove('hidden');
-  document.getElementById('fbArea').innerHTML=`<div class="fb fb-skip"><h4>⏭ Пропущено</h4><div style="font-size:13px;color:var(--muted)">Вопрос вернётся в конце</div></div>`;
+  document.getElementById('fbArea').innerHTML=`<div class="fb fb-skip"><h4>⏭ ${t('skipped_title')}</h4><div style="font-size:13px;color:var(--muted)">${t('skip_note')}</div></div>`;
   if(!session.firstSeen.has(q._id)){ session.firstSeen.add(q._id); session.wrong.push(q); session.wrongIds.push(q._id); }
   session.queue.push(pid); // re-queue
   session.history.push({pid,result:'skipped'});
@@ -1787,7 +2051,7 @@ function checkAnswer(q,pid){
 
 function applyHinted(correct,q,pid){
   if(correct){
-    showFb('hinted','👁 Верно, но подсмотрел — засчитано как неверное',correctOf(q));
+    showFb('hinted',t('fb_hinted'),correctOf(q));
     record(q,pid,'hinted'); finishCheck('partial'); return true;  // жёлтый, не красный
   }
   return false;
@@ -1795,7 +2059,7 @@ function applyHinted(correct,q,pid){
 
 function gradeMC(q,pid,hinted){
   const sel=[...document.querySelectorAll('.opt.sel')].map(e=>+e.dataset.i);
-  if(!sel.length){showToast('Выбери вариант!');return;}
+  if(!sel.length){showToast(t('choose_option'));return;}
   let ok=true;
   q._opts.forEach((o,i)=>{const el=document.querySelector(`.opt[data-i="${i}"]`);const p=sel.includes(i);
     if(o.correct){el.classList.add('correct-ans');if(!p)ok=false;}else if(p){el.classList.add('wrong-ans');ok=false;}});
@@ -1803,62 +2067,62 @@ function gradeMC(q,pid,hinted){
   if(hinted&&applyHinted(ok,q,pid)) return;
   const corr=q._opts.filter(o=>o.correct).map(o=>o.text).join('\n');
   const userAns=q._opts.filter((_,i)=>sel.includes(i)).map(o=>o.text).join(', ');
-  if(ok){showFb('correct','✓ Верно!',null);}else{showFb('wrong','✗ Неверно',corr);}
+  if(ok){showFb('correct',t('fb_correct'),null);}else{showFb('wrong',t('fb_wrong'),corr);}
   record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 function gradeShort(q,pid,hinted){
-  const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast('Введи ответ!');return;}
+  const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast(t('enter_answer'));return;}
   const corr=q.answer||''; const variants=corr.split('/').map(s=>norm(s.trim()));
   const nv=norm(v);
   const exact=variants.some(c=>c&&nv===c);
   const partial=!exact&&variants.some(c=>c&&(nv.includes(c)||c.includes(nv))&&nv.length>2);
   if(hinted&&(exact||partial)){ applyHinted(true,q,pid); return; }
-  if(exact){showFb('correct','✓ Верно!',corr);}
-  else if(partial){showFb('partial','〜 Частично верно (проверь написание)',corr);}
-  else{showFb('wrong','✗ Неверно',corr);}
+  if(exact){showFb('correct',t('fb_correct'),corr);}
+  else if(partial){showFb('partial',t('fb_partial'),corr);}
+  else{showFb('wrong',t('fb_wrong'),corr);}
   const res=exact?'correct':partial?'partial':'wrong';
   record(q,pid,exact?'correct':'wrong',v); finishCheck(res);
 }
 function gradeSelf(q,pid,hinted){
-  const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast('Введи ответ!');return;}
+  const v=(document.getElementById('txtIn')?.value||'').trim(); if(!v){showToast(t('enter_answer'));return;}
   document.getElementById('checkBtn').classList.add('hidden');
   document.getElementById('hintBtn').style.display='none';
   document.getElementById('qCard').dataset.checked='1';
   document.getElementById('fbArea').innerHTML=`<div class="fb fb-hint">
-    <h4>Эталонный ответ</h4><div class="correct-text">${q.answer}</div>
+    <h4>${t('ref_answer')}</h4><div class="correct-text">${q.answer}</div>
     <div class="self-grade" style="flex-wrap:wrap">
-      <button class="sg-btn yes" id="sgY">✓ Верно</button>
-      <button class="sg-btn" id="sgP" style="border-color:var(--partial);color:var(--partial)">〜 Почти верно</button>
-      <button class="sg-btn no" id="sgN">✗ Неверно</button>
+      <button class="sg-btn yes" id="sgY">${t('sg_yes')}</button>
+      <button class="sg-btn" id="sgP" style="border-color:var(--partial);color:var(--partial)">${t('sg_almost')}</button>
+      <button class="sg-btn no" id="sgN">${t('sg_no')}</button>
     </div></div>`;
   document.getElementById('sgY').onclick=()=>{
     if(hinted){
       playPartial();
       applyHinted(true,q,pid);
-      document.querySelector('.self-grade').innerHTML='<span style="color:var(--partial);font-size:13px">Засчитано как неверное (подсмотрел)</span>';
+      document.querySelector('.self-grade').innerHTML='<span style="color:var(--partial);font-size:13px">'+t('counted_hinted')+'</span>';
     } else {
       playCorrect();
-      record(q,pid,'correct',v); finishCheck('correct'); showFb('correct','✓ Засчитано!',null);
+      record(q,pid,'correct',v); finishCheck('correct'); showFb('correct',t('fb_counted'),null);
     }
     document.getElementById('skipBtn')?.classList.add('hidden');
     document.getElementById('nextBtn').classList.remove('hidden');
   };
   document.getElementById('sgP').onclick=()=>{
-    playPartial(); record(q,pid,'wrong',v+' (почти верно)'); finishCheck('partial');
-    showFb('partial','〜 Почти верно — отправлено на доработку',q.answer);
+    playPartial(); record(q,pid,'wrong',v+' ('+t('almost').toLowerCase()+')'); finishCheck('partial');
+    showFb('partial',t('fb_almost'),q.answer);
     document.getElementById('nextBtn').classList.remove('hidden');
     document.getElementById('skipBtn')?.classList.add('hidden');
   };
   document.getElementById('sgN').onclick=()=>{
     playWrong(); record(q,pid,'wrong',v); finishCheck('wrong');
-    showFb('wrong','✗ Отмечено как неверное',q.answer);
+    showFb('wrong',t('fb_marked_wrong'),q.answer);
     document.getElementById('nextBtn').classList.remove('hidden');
     document.getElementById('skipBtn')?.classList.add('hidden');
   };
 }
 function gradeMatch(q,pid,hinted){
   const sels=[...document.querySelectorAll('.match-table select')];
-  if(sels.some(s=>s.value==='-1'||s.value==='')){showToast('Заполни все соответствия!');return;}
+  if(sels.some(s=>s.value==='-1'||s.value==='')){showToast(t('fill_matches'));return;}
   // build rights array same way as renderMatch (all unique rights in original order)
   const allRights=q.pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
   let ok=true;
@@ -1870,9 +2134,9 @@ function gradeMatch(q,pid,hinted){
     else{row.classList.add('row-bad'); ok=false;}
   });
   if(hinted&&applyHinted(ok,q,pid)) return;
-  const corr=q.pairs.map(p=>`${stripTags(p.left)||'(формула)'} → ${stripTags(p.right)||'(формула)'}`).join('\n');
-  const userAns=sels.map(s=>{const i=+s.dataset.i;const chosen=allRights[+s.value];return `${stripTags(q.pairs[i].left)||'(формула)'} → ${stripTags(chosen)||'(формула)'}`;}).join('\n');
-  if(ok)showFb('correct','✓ Верно!',null);else showFb('wrong','✗ Неверно',corr);
+  const corr=q.pairs.map(p=>`${stripTags(p.left)||t('formula_lbl')} → ${stripTags(p.right)||t('formula_lbl')}`).join('\n');
+  const userAns=sels.map(s=>{const i=+s.dataset.i;const chosen=allRights[+s.value];return `${stripTags(q.pairs[i].left)||t('formula_lbl')} → ${stripTags(chosen)||t('formula_lbl')}`;}).join('\n');
+  if(ok)showFb('correct',t('fb_correct'),null);else showFb('wrong',t('fb_wrong'),corr);
   record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 function gradeOrder(q,pid,hinted){
@@ -1883,7 +2147,7 @@ function gradeOrder(q,pid,hinted){
   if(hinted&&applyHinted(ok,q,pid)) return;
   const corr=q.ordered.map((t,i)=>`${i+1}. ${t}`).join('\n');
   const userAns=cur.map((t,i)=>`${i+1}. ${t}`).join('\n');
-  if(ok)showFb('correct','✓ Верно!',null);else showFb('wrong','✗ Неверно',corr);
+  if(ok)showFb('correct',t('fb_correct'),null);else showFb('wrong',t('fb_wrong'),corr);
   record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
 
@@ -1923,12 +2187,12 @@ function finishSession(){
   buildResult(pct,c,t,timeStr,st);
   pushToCloud(); // сохраняем в облако после каждого теста
 }
-function buildResult(pct,c,t,timeStr,st){
+function buildResult(pct,c,total,timeStr,st){
   const ach=[];
   if(pct>=90) ach.push(t('ach_90'));
   if(pct===100) ach.push(t('ach_100'));
-  if(c===0&&t>0) ach.push(t('ach_zero'));
-  if(t>=50) ach.push(t('ach_big'));
+  if(c===0&&total>0) ach.push(t('ach_zero'));
+  if(total>=50) ach.push(t('ach_big'));
   const attempts=st.attempts||[];
   const chartBars=attempts.map((a,i)=>{
     const h=Math.max(4,a.pct); const isCur=(i===attempts.length-1);
@@ -1945,8 +2209,8 @@ function buildResult(pct,c,t,timeStr,st){
     const isPartial=h.result==='partial';
     const color=isCorrect?'var(--ok)':isPartial?'var(--partial)':'var(--bad)';
     const mark=isCorrect?'✓':isPartial?'~':'✗';
-    const userAns=h.userAnswer?`<div class=\'rev-ua\'>'+t('your_answer_lbl')+'<span style="color:${color}">${String(h.userAnswer).slice(0,200)}</span></div>`:'';
-    const correctAns=!isCorrect?`<div class=\'rev-a\'>'+t('correct_lbl')+' ${correctOf(q).slice(0,200)}</div>`:'';
+    const userAns=h.userAnswer?`<div class='rev-ua'>${t('your_answer_lbl')} <span style="color:${color}">${String(h.userAnswer).slice(0,200)}</span></div>`:'';
+    const correctAns=!isCorrect?`<div class='rev-a'>${t('correct_lbl')} ${correctOf(q).slice(0,200)}</div>`:'';
     return `<div class="rev-item" style="animation-delay:${i*.02}s">
       <div class="rev-q"><span style="color:${color};font-weight:700;margin-right:6px">${mark}</span>${stripTags(q.question).slice(0,180)}</div>
       ${userAns}${correctAns}
@@ -1954,24 +2218,24 @@ function buildResult(pct,c,t,timeStr,st){
   }).join('');
 
   const reviewSection=`<div class="review-section">
-    <h3>'+t('review_breakdown')+' — ${c} '+t('correct_was')+' ${t}</h3>
-    <p style=\'font-size:13px;color:var(--muted);margin:0 0 12px\'>'+t('first_try_note')+'</p>
-    ${answerRows||'<p style=\'color:var(--muted);text-align:center\'>'+t('no_data')+'</p>'}
+    <h3>${t('review_breakdown')} — ${t('correct_count',c,total)}</h3>
+    <p style='font-size:13px;color:var(--muted);margin:0 0 12px'>${t('first_try_note')}</p>
+    ${answerRows||`<p style='color:var(--muted);text-align:center'>${t('no_data')}</p>`}
   </div>`;
 
   document.getElementById('result').innerHTML=`<div class="result-card">
     <div style="text-align:center">
       <div class="result-big" id="resBig">0%</div>
-      <div class="result-sub">Верно с первой попытки: <b>${c} из ${t}</b> · время: ${timeStr}</div>
+      <div class="result-sub"><b>${t('correct_first',c,total)}</b> · ${t('time_lbl').toLowerCase()}: ${timeStr}</div>
       ${ach.length?`<div class="ach-row">${ach.map((a,i)=>`<span class="badge" style="animation-delay:${.2+i*.1}s">${a}</span>`).join('')}</div>`:''}
     </div>
     <div class="stats-grid">
-      <div class="stat-cell"><div class="stat-num">${pct}%</div><div class="stat-lbl">Результат</div></div>
-      <div class="stat-cell"><div class="stat-num">${st.best||pct}%</div><div class="stat-lbl">Лучший</div></div>
-      <div class="stat-cell"><div class="stat-num">${st.attempts?.length||1}</div><div class="stat-lbl">Попыток</div></div>
-      <div class="stat-cell"><div class="stat-num">${timeStr}</div><div class="stat-lbl">Время</div></div>
+      <div class="stat-cell"><div class="stat-num">${pct}%</div><div class="stat-lbl">${t('result_lbl')}</div></div>
+      <div class="stat-cell"><div class="stat-num">${st.best||pct}%</div><div class="stat-lbl">${t('best_lbl')}</div></div>
+      <div class="stat-cell"><div class="stat-num">${st.attempts?.length||1}</div><div class="stat-lbl">${t('attempts_lbl')}</div></div>
+      <div class="stat-cell"><div class="stat-num">${timeStr}</div><div class="stat-lbl">${t('time_lbl')}</div></div>
     </div>
-    ${attempts.length>1?`<div class="attempt-chart"><h3>'+t('history_chart')+'</h3><div class="chart-bars" id="chartBars">${chartBars}</div></div>`:''}
+    ${attempts.length>1?`<div class="attempt-chart"><h3>${t('history_chart')}</h3><div class="chart-bars" id="chartBars">${chartBars}</div></div>`:''}
     <div class="actions" style="justify-content:center;margin-top:22px">
       <button class="btn" id="againBtn">${t('again')}</button>
       ${session.disc?`<button class="btn ghost" id="wrongBtn">${t('errors_only')}</button>`:''}
@@ -1997,12 +2261,12 @@ function buildResult(pct,c,t,timeStr,st){
 function confirmExit(){
   playClick();
   openOverlay(`<div class="modal">
-    <h2>Выйти из теста?</h2>
-    <p class="sub">Вопрос ${(session.currentPid||0)+1} из ${session.total} · освоено ${session.firstCorrect.size}</p>
+    <h2>${t('exit_title')}</h2>
+    <p class="sub">${t('exit_sub',(session.currentPid||0)+1,session.total,session.firstCorrect.size)}</p>
     <div class="mode-list">
-      <button class="mode-btn" id="exitSave"><b>Сохранить и выйти</b><span>Тест поставится на паузу — можно продолжить позже</span></button>
-      <button class="mode-btn" id="exitNo" style="border-color:var(--bad)"><b>Выйти без сохранения</b><span>Прогресс этой сессии потеряется</span></button>
-      <button class="modal-x" id="exitCancel">Продолжить тест</button>
+      <button class="mode-btn" id="exitSave"><b>${t('save_exit')}</b><span>${t('save_exit_sub')}</span></button>
+      <button class="mode-btn" id="exitNo" style="border-color:var(--bad)"><b>${t('exit_no')}</b><span>${t('exit_warn')}</span></button>
+      <button class="modal-x" id="exitCancel">${t('exit_cont')}</button>
     </div></div>`);
   document.getElementById('exitSave').onclick=()=>{
     autoSaveSession();   // обновляем snapshot (уже сохранён, но на всякий случай)
@@ -2058,11 +2322,11 @@ function startRandom40(){
   if(as && as.queue && as.queue.length>0){
     const done=as.firstSeen?.length||0;
     openOverlay(`<div class="modal" style="text-align:center;max-width:400px">
-      <h2>Незавершённый тест 40 вопросов</h2>
-      <p class="sub">Пройдено ${done} из ${as.total||40} вопросов</p>
+      <h2>${t('unfinished40')}</h2>
+      <p class="sub">${t('passed_n',done,as.total||40)}</p>
       <div class="mode-list" style="margin-top:16px">
-        <button class="mode-btn" id="resumeR"><b>Продолжить</b><span>С того места</span></button>
-        <button class="mode-btn" id="newR"><b>Новый тест</b><span>40 новых случайных вопросов</span></button>
+        <button class="mode-btn" id="resumeR"><b>${t('resume')}</b><span>${t('resume_sub')}</span></button>
+        <button class="mode-btn" id="newR"><b>${t('new_test')}</b><span>${t('new40_sub')}</span></button>
       </div></div>`);
     document.getElementById('resumeR').onclick=()=>{ closeOverlay();
       if(restoreSession(as)){ show('quiz'); document.getElementById('qDisc').textContent=t('test_40'); wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ(); }};
@@ -2097,11 +2361,11 @@ function showDiscPage(disc){
   if(as && !as.isRandom40 && as.queue && as.queue.length>0){
     const done=as.firstSeen?.length||0, total=as.total||25;
     openOverlay(`<div class="modal" style="text-align:center;max-width:400px">
-      <h2>Незавершённый тест</h2>
-      <p class="sub">${disc||t('all_disc')} · Пройдено ${done} из ${total} вопросов</p>
+      <h2>${t('unfinished')}</h2>
+      <p class="sub">${disc||t('all_disc')} · ${t('passed_n',done,total)}</p>
       <div class="mode-list" style="margin-top:16px">
-        <button class="mode-btn" id="resumeBtn"><b>Продолжить</b><span>С того места, где остановился</span></button>
-        <button class="mode-btn" id="newTestBtn"><b>Начать новый тест</b><span>Прогресс незавершённого будет потерян</span></button>
+        <button class="mode-btn" id="resumeBtn"><b>${t('resume')}</b><span>${t('resume_sub')}</span></button>
+        <button class="mode-btn" id="newTestBtn"><b>${t('start_new')}</b><span>${t('start_new_sub')}</span></button>
       </div></div>`);
     document.getElementById('resumeBtn').onclick=()=>{
       closeOverlay();
@@ -2131,53 +2395,53 @@ function _showDiscPage(disc){
       const cls=a.pct>=80?'hi':a.pct>=50?'mid':'lo';
       const origIdx=attempts.length-1-i;
       return `<tr>
-        <td class="att-num">Попытка ${n}</td>
+        <td class="att-num">${t('attempt_n',n)}</td>
         <td>${a.date}</td>
         <td class="att-score-cell ${cls}">${a.pct}%</td>
         <td>${a.correct}/${a.total}</td>
         <td>${a.time||'—'}</td>
-        <td><button class="att-review-btn" data-idx="${origIdx}">Просмотреть</button></td>
+        <td><button class="att-review-btn" data-idx="${origIdx}">${t('review_btn')}</button></td>
       </tr>`;
     }).join('');
     attHtml=`
       <h3 style="font-family:var(--serif);font-size:15px;margin:0 0 10px;color:var(--muted)">
-        Предыдущие попытки
+        ${t('prev_attempts')}
       </h3>
       <div style="overflow-x:auto;margin-bottom:18px">
         <table class="att-table">
           <thead><tr>
-            <th>#</th><th>Дата</th><th>Результат</th><th>${t('correct')}</th><th>Время</th><th></th>
+            <th>#</th><th>${t('date_lbl')}</th><th>${t('result_lbl')}</th><th>${t('correct')}</th><th>${t('time_lbl')}</th><th></th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
   } else {
-    attHtml=`<div class="no-attempts">📋 Попыток ещё не было. Начни первую!</div>`;
+    attHtml=`<div class="no-attempts">${t('no_attempts')}</div>`;
   }
 
   openOverlay(`<div class="modal disc-modal">
     <div class="disc-header">
       <div>
         <h2>${title}</h2>
-        <p class="sub" style="margin:2px 0 0">${cnt} вопросов</p>
+        <p class="sub" style="margin:2px 0 0">${t('questions_n',cnt)}</p>
       </div>
-      ${best?`<span class="disc-best">Лучший: ${best}%</span>`:''}
+      ${best?`<span class="disc-best">${t('best_pct',best)}</span>`:''}
     </div>
     ${attHtml}
-    <h3 style="font-family:var(--serif);font-size:15px;margin:0 0 10px">Начать новую попытку</h3>
+    <h3 style="font-family:var(--serif);font-size:15px;margin:0 0 10px">${t('start_attempt')}</h3>
     <div class="type-filters" id="typeFilters">
-      <span class="tf on" data-t="multichoice">🔘 Выбор</span>
-      <span class="tf on" data-t="shortanswer">✏️ Ответ</span>
-      <span class="tf on" data-t="matching">🔗 Сопоставление</span>
-      <span class="tf on" data-t="ordering">↕️ Порядок</span>
+      <span class="tf on" data-t="multichoice">${t('tf_choice')}</span>
+      <span class="tf on" data-t="shortanswer">${t('tf_answer')}</span>
+      <span class="tf on" data-t="matching">${t('tf_matching')}</span>
+      <span class="tf on" data-t="ordering">${t('tf_order')}</span>
     </div>
     <div class="disc-actions">
-      <button class="mode-btn" data-m="order"><b>Подряд</b><span>В исходном порядке</span></button>
-      <button class="mode-btn" data-m="random"><b>Случайно</b><span>Перемешать вопросы</span></button>
-      <button class="mode-btn" data-m="hard"><b>Сложные чаще</b><span>Неверные возвращаются в конец</span></button>
-      ${hasWrong?`<button class="mode-btn" data-m="wrong" style="border-color:var(--bad)"><b>⚠ Только ошибки</b><span>Вопросы из прошлой сессии</span></button>`:''}
+      <button class="mode-btn" data-m="order"><b>${t('mode_seq')}</b><span>${t('mode_seq_sub')}</span></button>
+      <button class="mode-btn" data-m="random"><b>${t('mode_rand')}</b><span>${t('mode_rand_sub')}</span></button>
+      <button class="mode-btn" data-m="hard"><b>${t('mode_hard')}</b><span>${t('mode_hard_sub')}</span></button>
+      ${hasWrong?`<button class="mode-btn" data-m="wrong" style="border-color:var(--bad)"><b>⚠ ${t('mode_wrong')}</b><span>${t('mode_wrong_sub')}</span></button>`:''}
     </div>
-    <button class="modal-x" id="discCancel">Назад</button>
+    <button class="modal-x" id="discCancel">${t('back')}</button>
   </div>`);
 
   // wire type filters
@@ -2200,7 +2464,7 @@ function reviewAttempt(disc, attIdx){
   const st=profile.stats[disc||'__all__'];
   const att=st?.attempts?.[attIdx];
   if(!att){ showToast(t('attempt_not_found')); return; }
-  const pct=att.pct, n=att.correct, t=att.total;
+  const pct=att.pct, n=att.correct, tot=att.total;
   const cls=pct>=80?'hi':pct>=50?'mid':'lo';
   const attNum=attIdx+1;
 
@@ -2214,7 +2478,7 @@ function reviewAttempt(disc, attIdx){
       const isPartial=a.result==='partial';
       const color=isCorrect?'var(--ok)':isPartial?'var(--partial)':'var(--bad)';
       const mark=isCorrect?'✓':isPartial?'~':'✗';
-      const userAns=a.userAnswer?`<div class=\'rev-ua\'>'+t('your_answer_lbl')+'<span style="color:${color}">${String(a.userAnswer).slice(0,200)}</span></div>`:'';
+      const userAns=a.userAnswer?`<div class='rev-ua'>${t('your_answer_lbl')} <span style="color:${color}">${String(a.userAnswer).slice(0,200)}</span></div>`:'';
       const correctAns=!isCorrect?`<div class="rev-a">${t("correct_lbl")} ${(a.correct||correctOf(q)).slice(0,200)}</div>`:'';
       return `<div class="rev-item" style="animation-delay:${i*.02}s">
         <div class="rev-q"><span style="color:${color};font-weight:700;margin-right:6px">${mark}</span>${stripTags(q.question).slice(0,180)}</div>
@@ -2228,25 +2492,25 @@ function reviewAttempt(disc, attIdx){
     answerRows=wrongQs.slice(0,20).map(q=>`
       <div class="rev-item">
         <div class="rev-q"><span style="color:var(--bad);font-weight:700;margin-right:6px">✗</span>${stripTags(q.question).slice(0,180)}</div>
-        <div class=\'rev-a\'>'+t('correct_lbl')+' ${correctOf(q).slice(0,200)}</div>
+        <div class='rev-a'>${t('correct_lbl')} ${correctOf(q).slice(0,200)}</div>
       </div>`).join('');
   }
 
   openOverlay(`<div class="modal" style="max-width:560px">
-    <h2>Попытка ${attNum} — ${disc||t('all_disc')}</h2>
+    <h2>${t('attempt_n',attNum)} — ${disc||t('all_disc')}</h2>
     <div class="stats-grid" style="margin:14px 0">
-      <div class="stat-cell"><div class="stat-num att-score-cell ${cls}">${pct}%</div><div class="stat-lbl">Результат</div></div>
-      <div class="stat-cell"><div class="stat-num">${n}/${t}</div><div class="stat-lbl">${t('correct')}</div></div>
-      <div class="stat-cell"><div class="stat-num">${att.time||'—'}</div><div class="stat-lbl">Время</div></div>
-      <div class="stat-cell"><div class="stat-num date-num">${att.date}</div><div class="stat-lbl">Дата</div></div>
+      <div class="stat-cell"><div class="stat-num att-score-cell ${cls}">${pct}%</div><div class="stat-lbl">${t('result_lbl')}</div></div>
+      <div class="stat-cell"><div class="stat-num">${n}/${tot}</div><div class="stat-lbl">${t('correct')}</div></div>
+      <div class="stat-cell"><div class="stat-num">${att.time||'—'}</div><div class="stat-lbl">${t('time_lbl')}</div></div>
+      <div class="stat-cell"><div class="stat-num date-num">${att.date}</div><div class="stat-lbl">${t('date_lbl')}</div></div>
     </div>
     <div class="review-section">
-      <h3>'+t('review_breakdown')+'</h3>
-      ${answerRows||'<p style=\'color:var(--muted);text-align:center\'>'+t('no_data')+'</p>'}
+      <h3>${t('review_breakdown')}</h3>
+      ${answerRows||`<p style='color:var(--muted);text-align:center'>${t('no_data')}</p>`}
     </div>
     <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn sm" id="revRetrain" ${att.wrongIds?.length?'':'disabled'}>Тренировать ошибки</button>
-      <button class="modal-x" style="margin:0" id="revBack">Назад</button>
+      <button class="btn sm" id="revRetrain" ${att.wrongIds?.length?'':'disabled'}>${t('train_errors')}</button>
+      <button class="modal-x" style="margin:0" id="revBack">${t('back')}</button>
     </div>
   </div>`);
   document.getElementById('revBack').onclick=()=>showDiscPage(disc);
@@ -2306,13 +2570,13 @@ function buildCabinet(){
   document.getElementById('cabinet').innerHTML='<div class="cab-card">'+
     '<div class="cab-header">'+
       '<div class="cab-avatar">'+(profile.name[0]||'?').toUpperCase()+'</div>'+
-      '<div><h2 style="margin:0">'+profile.name+'</h2><div style="font-size:13px;color:var(--muted);margin-top:2px">Личный кабинет</div></div>'+
+      '<div><h2 style="margin:0">'+profile.name+'</h2><div style="font-size:13px;color:var(--muted);margin-top:2px">'+t('cabinet_title')+'</div></div>'+
     '</div>'+
     '<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin:16px 0">'+
-      '<div class="stat-cell"><div class="stat-num">'+(profile.sessions||0)+'</div><div class="stat-lbl">Тестов</div></div>'+
-      '<div class="stat-cell"><div class="stat-num">'+done+'/'+discs.length+'</div><div class="stat-lbl">Начато</div></div>'+
-      '<div class="stat-cell"><div class="stat-num" style="color:'+(avg>=80?'var(--ok)':avg>=50?'var(--partial)':'var(--bad)')+'">'+avg+'%</div><div class="stat-lbl">Средний</div></div>'+
-      '<div class="stat-cell"><div class="stat-num">'+totalAtt+'</div><div class="stat-lbl">Попыток</div></div>'+
+      '<div class="stat-cell"><div class="stat-num">'+(profile.sessions||0)+'</div><div class="stat-lbl">'+t('sessions_lbl')+'</div></div>'+
+      '<div class="stat-cell"><div class="stat-num">'+done+'/'+discs.length+'</div><div class="stat-lbl">'+t('started_lbl')+'</div></div>'+
+      '<div class="stat-cell"><div class="stat-num" style="color:'+(avg>=80?'var(--ok)':avg>=50?'var(--partial)':'var(--bad)')+'">'+avg+'%</div><div class="stat-lbl">'+t('avg_lbl')+'</div></div>'+
+      '<div class="stat-cell"><div class="stat-num">'+totalAtt+'</div><div class="stat-lbl">'+t('attempts_lbl')+'</div></div>'+
     '</div>'+
     (done>=3?'<div style="margin:0 0 20px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">'+t('radar_progress')+'</div>'+radarChart()+'</div>':'')+
     (bestDisc?'<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">'+
@@ -2399,10 +2663,10 @@ function openThemePicker(){
       style="background:${v.bg};border-color:${profile.theme===k?'var(--ink)':'transparent'}">
       <div style="position:absolute;inset:4px;border-radius:50%;background:${v.accent}"></div>
     </div>`).join('');
-  openOverlay(`<div class="modal"><h2>Тема оформления</h2>
+  openOverlay(`<div class="modal"><h2>${t('theme_title')}</h2>
     <div class="theme-grid">${swatches}</div>
-    <div style="margin-top:8px;color:var(--muted);font-size:13px">${Object.values(THEMES).map(v=>v.label).join(' · ')}</div>
-    <button class="modal-x" id="themeClose">Закрыть</button></div>`);
+    <div style="margin-top:8px;color:var(--muted);font-size:13px">${Object.values(THEMES).map(v=>t(v.labelKey)).join(' · ')}</div>
+    <button class="modal-x" id="themeClose">${t('close_btn')}</button></div>`);
   document.querySelectorAll('.theme-swatch').forEach(s=>s.onclick=()=>{ playClick(); applyTheme(s.dataset.t); closeOverlay(); openThemePicker(); });
   document.getElementById('themeClose').onclick=closeOverlay;
 }
@@ -2503,11 +2767,11 @@ function _showChangelog(){
         <h2 style="margin:0">${t('cl_title')}</h2>
         <div style="font-size:12px;color:var(--muted);margin-top:3px">v${APP_VERSION} · ${t('cl_sub')}</div>
       </div>
-      <span style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap">Новое</span>
+      <span style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap">${t('cl_new')}</span>
     </div>
 
     <div class="cl-block cl-new">
-      <div class="cl-ver">v2.2.0 — текущая версия</div>
+      <div class="cl-ver">v2.2.0 — ${t('cl_current')}</div>
       <ul>
         <li>Вход по логину и паролю — больше не нужно каждый раз ждать код на почту</li>
         <li>Регистрация прямо в приложении — создай аккаунт за 10 секунд</li>
@@ -2598,7 +2862,7 @@ function _showChangelog(){
       </ul>
     </div>
 
-    <button class="btn" style="width:100%;justify-content:center;margin-top:18px" onclick="closeOverlay()">Понятно, начать</button>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:18px" onclick="closeOverlay()">${t('cl_start')}</button>
   </div>`);
 }
 
@@ -2681,13 +2945,13 @@ async function sbSetPassword(password){
 
 /* ========== PASSWORD STRENGTH ========== */
 const PW_LEVELS=[
-  {min:0,label:'УЖАС',color:'#e02020',width:8},
-  {min:1,label:'Очень слабый',color:'#e05a20',width:20},
-  {min:2,label:'Слабый',color:'#e09020',width:36},
-  {min:3,label:'Средний',color:'#d4c020',width:52},
-  {min:4,label:'Хороший',color:'#9ac030',width:68},
-  {min:5,label:'Сильный',color:'#4eb860',width:84},
-  {min:6,label:'ЛЕГЕНДАРНЫЙ',color:'gold',width:100,legendary:true}
+  {min:0,labelIdx:0,color:'#e02020',width:8},
+  {min:1,labelIdx:1,color:'#e05a20',width:20},
+  {min:2,labelIdx:2,color:'#e09020',width:36},
+  {min:3,labelIdx:3,color:'#d4c020',width:52},
+  {min:4,labelIdx:4,color:'#9ac030',width:68},
+  {min:5,labelIdx:5,color:'#4eb860',width:84},
+  {min:6,labelIdx:6,color:'gold',width:100,legendary:true}
 ];
 function pwScore(p){
   if(!p) return -1;
@@ -2790,10 +3054,25 @@ function gateI18n(){
   const passPH=document.getElementById('passIn');
   const regPassPH=document.getElementById('regPass');
   if(regPH) regPH.placeholder='email';
-  if(passPH) passPH.placeholder=t('password_empty');
-  if(regPassPH) regPassPH.placeholder=t('password_empty');
+  if(passPH) passPH.placeholder=t('password_ph');
+  if(regPassPH) regPassPH.placeholder=t('new_password_ph');
+  set('orSep',t('or_sep'));
+  set('emailBack',t('other_email'));
+  set('codeSentTxt',t('code_sent'));
+  const codeInEl=document.getElementById('codeIn'); if(codeInEl) codeInEl.placeholder=t('enter_code');
   updateLangBtn();
   const cabBtnEl=document.getElementById('cabBtn'); if(cabBtnEl) cabBtnEl.textContent=t('cabinet_btn');
+}
+
+/* Apply i18n to all static HTML parts (title, gate, home header) */
+function applyStaticI18n(){
+  document.title=t('cl_title');
+  gateI18n();
+  const home=document.getElementById('home');
+  if(home && !home.classList.contains('hidden')){
+    const owlEl=document.getElementById('owlMsg');
+    if(owlEl) owlEl.textContent=t('welcome');
+  }
 }
 
 function initGate(){
@@ -2852,7 +3131,7 @@ function initGate(){
     const pass=$id('regPass').value||'';
     if(!email.includes('@')||!email.includes('.')){ showToast(t('email_invalid')); return; }
     if(pass.length<6){ showToast(t('password_short')); return; }
-    if(pwScore(pass)<2){ showToast('Пароль слишком слабый — добавь цифры или буквы разного регистра'); return; }
+    if(pwScore(pass)<2){ showToast(t('password_weak')); return; }
     $id('regGo').disabled=true; $id('regGo').textContent=t('creating');
     const r=await sbSignUp(email,pass);
     if(r.ok&&r.data&&r.data.access_token){
@@ -2962,12 +3241,12 @@ function offerSetPassword(){
   openOverlay(`<div class="modal" style="max-width:420px">
     <h2>${t('set_password_title')}</h2>
     <p class="sub">${t('set_password_hint')}</p>
-    <input class="gate-input" id="newPassIn" placeholder="Новый пароль" type="password" autocomplete="new-password">
+    <input class="gate-input" id="newPassIn" placeholder="${t('new_password_ph2')}" type="password" autocomplete="new-password">
     <div class="pw-meter"><i id="pwFill"></i></div>
     <div class="pw-label" id="pwLabel"></div>
     <div style="display:flex;gap:10px;margin-top:14px">
-      <button class="btn" style="flex:1;justify-content:center" id="setPassGo">Сохранить</button>
-      <button class="btn ghost" style="flex:1;justify-content:center" onclick="closeOverlay()">Позже</button>
+      <button class="btn" style="flex:1;justify-content:center" id="setPassGo">${t('save_btn')}</button>
+      <button class="btn ghost" style="flex:1;justify-content:center" onclick="closeOverlay()">${t('set_password_later')}</button>
     </div>
   </div>`);
   const inp=document.getElementById('newPassIn');
@@ -2979,7 +3258,7 @@ function offerSetPassword(){
     if(p.length<6){ showToast(t('password_short')); return; }
     if(pwScore(p)<2){ showToast(t('password_weak')); return; }
     const btn=document.getElementById('setPassGo');
-    btn.disabled=true; btn.textContent='Сохраняем...';
+    btn.disabled=true; btn.textContent=t('saving_btn');
     const ok=await sbSetPassword(p);
     closeOverlay();
     showToast(ok?t('password_saved'):t('password_error'));
@@ -3002,7 +3281,7 @@ document.getElementById('soundBtn').onclick=()=>{
   save();
 };
 document.getElementById('soundBtn').textContent = profile.soundEnabled===false ? '🔇' : '🔊';
-document.getElementById('owlSvg').addEventListener('click',()=>{ playClick(); const msgs=['Ухуху! Ты справишься!','Совы мудрые. Ты тоже!','Давай учиться!','Мне нравится твой прогресс!','🦉 Учись усердно!']; owlMsg(msgs[Math.floor(Math.random()*msgs.length)]); document.getElementById('owlSvg').style.animation='owlBounce .6s ease'; setTimeout(()=>document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite',700); });
+document.getElementById('owlSvg').addEventListener('click',()=>{ playClick(); const msgs=t('owl_clicks'); owlMsg(msgs[Math.floor(Math.random()*msgs.length)]); document.getElementById('owlSvg').style.animation='owlBounce .6s ease'; setTimeout(()=>document.getElementById('owlSvg').style.animation='owlWiggle 3s ease-in-out infinite',700); });
 
 /* ========== BOOT ========== */
 document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\/svg>/s)?.[1]||'';
