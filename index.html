@@ -805,7 +805,6 @@ var LANGS = {
     cl_new:'Новое',
     cl_current:'текущая версия',
     cl_start:'Понятно, начать',
-    pw_levels:['УЖАС','Очень слабый','Слабый','Средний','Хороший','Сильный','ЛЕГЕНДАРНЫЙ'],
     saving_btn:'Сохраняем...',
   }
 };
@@ -2272,13 +2271,13 @@ async function sbSetPassword(password){
 
 /* ========== PASSWORD STRENGTH ========== */
 const PW_LEVELS=[
-  {min:0,labelIdx:0,color:'#e02020',width:8},
-  {min:1,labelIdx:1,color:'#e05a20',width:20},
-  {min:2,labelIdx:2,color:'#e09020',width:36},
-  {min:3,labelIdx:3,color:'#d4c020',width:52},
-  {min:4,labelIdx:4,color:'#9ac030',width:68},
-  {min:5,labelIdx:5,color:'#4eb860',width:84},
-  {min:6,labelIdx:6,color:'gold',width:100,legendary:true}
+  {label:'😱 УЖАС — «qwerty» тоже пароль?',     color:'#e02020',width:8},
+  {label:'🥴 Очень слабый — мой дед взломает',   color:'#e05a20',width:20},
+  {label:'😬 Слабый — сойдёт для сельпо',        color:'#e09020',width:36},
+  {label:'😐 Средний — терпимо, но не айс',      color:'#d4c020',width:52},
+  {label:'🙂 Хороший — хакер поплачет чуть-чуть',color:'#9ac030',width:68},
+  {label:'💪 Сильный — уважаю, серьёзно',        color:'#4eb860',width:84},
+  {label:'✨ ЛЕГЕНДАРНЫЙ — да ты просто бог',    color:'gold',width:100,legendary:true}
 ];
 function pwScore(p){
   if(!p) return -1;
