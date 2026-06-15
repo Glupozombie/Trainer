@@ -475,6 +475,9 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
         <button class="gate-link" id="toRegister"></button>
         <button class="gate-link" id="otpLink"></button>
       </div>
+      <div style="text-align:center;margin-top:8px">
+        <button class="gate-link" id="forgotPwBtn"></button>
+      </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--muted)">
         <div style="flex:1;height:1px;background:var(--line)"></div>
         <span style="font-size:12px" id="orSep"></span>
@@ -576,6 +579,7 @@ var LANGS = {
     login_btn:'Войти',
     register_btn:'Регистрация',
     otp_link:'Войти по коду из письма',
+    forgot_pw:'Забыл пароль?',
     register_title:'Создать аккаунт',
     have_account:'У меня уже есть аккаунт',
     otp_hint:'Введи email — пришлём код для входа. Подойдёт, если забыл пароль.',
@@ -2249,9 +2253,9 @@ async function sbSendOtp(email){
   if(!res.ok){
     const err=await res.clone().text();
     console.warn('OTP send error:',res.status,err);
-    tgLog('otp','Ошибка отправки кода',{email,status:res.status,error:err});
+    tgLog('otp','Ошибка отправки кода',{status:res.status,error:err});
   } else {
-    tgLog('otp','Код запрошен',{email});
+    tgLog('otp','Код запрошен');
   }
   return res.ok;
 }
@@ -2265,11 +2269,11 @@ async function sbVerifyOtp(email,token){
   if(!res.ok){
     const err=await res.clone().text();
     console.warn('OTP verify error:',res.status,err);
-    tgLog('auth','Неверный код входа',{email,status:res.status,error:err});
+    tgLog('auth','Неверный код входа',{status:res.status,error:err});
     return null;
   }
   const data=await res.json();
-  tgLog('auth','Успешный вход',{email});
+  tgLog('auth','Успешный вход');
   return data;
 }
 
@@ -2282,10 +2286,10 @@ async function sbSignUp(email,password){
     });
     const d=await res.json().catch(()=>null);
     if(!res.ok){
-      tgLog('auth','Ошибка регистрации',{email,status:res.status,error:JSON.stringify(d||{}).slice(0,200)});
+      tgLog('auth','Ошибка регистрации',{status:res.status,error:JSON.stringify(d||{}).slice(0,200)});
       return {ok:false,err:d};
     }
-    tgLog('auth','Регистрация (пароль)',{email});
+    tgLog('auth','Регистрация (пароль)');
     return {ok:true,data:d};
   }catch(e){ return {ok:false,err:{msg:String(e)}}; }
 }
@@ -2297,10 +2301,10 @@ async function sbPasswordLogin(email,password){
     });
     const d=await res.json().catch(()=>null);
     if(!res.ok){
-      tgLog('auth','Неверный email/пароль',{email,status:res.status});
+      tgLog('auth','Неверный email/пароль',{status:res.status});
       return null;
     }
-    tgLog('auth','Вход по паролю',{email});
+    tgLog('auth','Вход по паролю');
     return d;
   }catch(e){ return null; }
 }
@@ -2413,6 +2417,7 @@ function gateI18n(){
   set('loginGo',t('login_btn'));
   set('toRegister',t('register_btn'));
   set('otpLink',t('otp_link'));
+  set('forgotPwBtn',t('forgot_pw'));
   set('guestBtn',t('guest_btn'));
   set('regGo',t('create_account'));
   set('toLogin',t('have_account'));
@@ -2530,6 +2535,7 @@ function initGate(){
 
   /* ---- ВХОД ПО КОДУ (OTP, забыл пароль) ---- */
   $id('otpLink').onclick=()=>{ playClick(); $id('otpEmailIn').value=($id('emailIn').value||'').trim(); gateShow('gateOtp'); setTimeout(()=>$id('otpEmailIn').focus(),100); };
+  $id('forgotPwBtn').onclick=()=>{ playClick(); $id('otpEmailIn').value=($id('emailIn').value||'').trim(); gateShow('gateOtp'); setTimeout(()=>$id('otpEmailIn').focus(),100); };
   $id('otpBack').onclick=()=>{ playClick(); gateShow('gateLogin'); };
 
   const showCodeForm=(email)=>{
