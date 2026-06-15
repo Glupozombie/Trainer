@@ -841,8 +841,24 @@ function _tone(freq, vol, dur, delay){
   o.connect(g); g.connect(c.destination);
   o.start(t0); o.stop(t0+dur+.01);
 }
-// Tap — short high sine, like iPhone keyboard click
-function playClick(){ _tone(1100,.055,.055); }
+// Click = white noise burst through bandpass filter — exactly like iPhone keyboard tap
+function playClick(){
+  if(profile && profile.soundEnabled===false) return;
+  const c=ctx(); if(!c) return;
+  const dur=.055, rate=c.sampleRate;
+  const len=Math.ceil(rate*dur);
+  const buf=c.createBuffer(1,len,rate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const src=c.createBufferSource(); src.buffer=buf;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=.9;
+  const hs=c.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=6;
+  const g=c.createGain();
+  g.gain.setValueAtTime(.38,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+  src.connect(bp); bp.connect(hs); hs.connect(g); g.connect(c.destination);
+  src.start(); src.stop(c.currentTime+dur);
+}
 // Correct — two-tone ascending chime (like iPhone "New Mail" feel)
 function playCorrect(){
   _tone(1047,.13,.18);        // C6
