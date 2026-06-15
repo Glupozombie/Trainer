@@ -845,19 +845,24 @@ function _tone(freq, vol, dur, delay){
 function playClick(){
   if(profile && profile.soundEnabled===false) return;
   const c=ctx(); if(!c) return;
-  const dur=.055, rate=c.sampleRate;
-  const len=Math.ceil(rate*dur);
-  const buf=c.createBuffer(1,len,rate);
-  const d=buf.getChannelData(0);
-  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const now=c.currentTime;
+  // noise layer: short crunch (30ms)
+  const len=Math.ceil(c.sampleRate*.03);
+  const buf=c.createBuffer(1,len,c.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
   const src=c.createBufferSource(); src.buffer=buf;
-  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=.9;
-  const hs=c.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=6;
-  const g=c.createGain();
-  g.gain.setValueAtTime(.38,c.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
-  src.connect(bp); bp.connect(hs); hs.connect(g); g.connect(c.destination);
-  src.start(); src.stop(c.currentTime+dur);
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2400; bp.Q.value=1.2;
+  const gn=c.createGain();
+  gn.gain.setValueAtTime(.28,now); gn.gain.exponentialRampToValueAtTime(.0001,now+.03);
+  src.connect(bp); bp.connect(gn); gn.connect(c.destination);
+  src.start(); src.stop(now+.04);
+  // sine body layer: 1050 Hz, 60ms — adds warmth
+  const o=c.createOscillator(); o.type='sine'; o.frequency.value=1050;
+  const gs=c.createGain();
+  gs.gain.setValueAtTime(0,now); gs.gain.linearRampToValueAtTime(.09,now+.003);
+  gs.gain.exponentialRampToValueAtTime(.0001,now+.06);
+  o.connect(gs); gs.connect(c.destination);
+  o.start(now); o.stop(now+.07);
 }
 // Correct — two-tone ascending chime (like iPhone "New Mail" feel)
 function playCorrect(){
