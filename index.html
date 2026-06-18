@@ -177,19 +177,20 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .owl-msg{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px;min-height:20px;transition:all .3s}
 .brain-line{fill:none;stroke:rgba(255,255,255,0.1);stroke-width:1.5;stroke-linecap:round;opacity:0;transition:opacity .3s}
 /* ---- BRAIN LAYOUT ---- */
-.brain-layout{display:flex;align-items:center;gap:16px;padding:0 0 8px}
-.brain-col{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
-.brain-hub-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;width:140px}
+@keyframes cardDrift{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(0.4deg)}}
+@keyframes cardDriftAlt{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(5px) rotate(-0.3deg)}}
+.brain-layout{display:flex;align-items:flex-start;gap:20px;padding:0 0 12px}
+.brain-col{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.brain-hub-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;width:150px}
 .brain-hub-col .owl-wrap{margin-bottom:6px}
-.brain-hub-col .owl-msg{font-size:12px;text-align:center;max-width:130px}
-/* Compact card style for brain layout */
-#brainLeft .dcard,#brainRight .dcard{height:78px}
-#brainLeft .dcard-body,#brainRight .dcard-body{padding:10px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85) 30%)}
-#brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:12.5px;margin-bottom:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brain-hub-col .owl-msg{font-size:12px;text-align:center;max-width:140px}
+/* Card sizing in brain layout */
+#brainLeft .dcard,#brainRight .dcard{height:100px}
+#brainLeft .dcard-body,#brainRight .dcard-body{padding:10px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85) 28%)}
+#brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:13px;margin-bottom:2px;line-height:1.3}
 #brainLeft .dcard-body .dpbar,#brainRight .dcard-body .dpbar{margin-top:5px}
-#brainLeft .dcard-body .dbest,#brainRight .dcard-body .dbest{top:-22px;font-size:11px;padding:1px 6px}
+#brainLeft .dcard-body .dbest,#brainRight .dcard-body .dbest{top:-26px;font-size:11px;padding:1px 6px}
 #brainLeft .dcard-body .dc,#brainRight .dcard-body .dc{font-size:11px}
-/* Right column text align */
 #brainRight .dcard-body{text-align:right}
 /* Mobile: stack normally */
 @media(max-width:640px){
@@ -198,8 +199,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   .brain-hub-col{width:100%}
   #brainLeft .dcard,#brainRight .dcard{height:160px}
   #brainLeft .dcard-body,#brainRight .dcard-body{padding:14px 16px 16px;text-align:left}
-  #brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:15px;white-space:normal}
-}
+  #brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:15px}}
 
 /* ============ OVERLAY ============ */
 .overlay{position:fixed;inset:0;background:rgba(10,8,6,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100;backdrop-filter:blur(6px);animation:fadeIn .25s}
@@ -1135,7 +1135,7 @@ async function pushToCloud(){
       },
       body:JSON.stringify({
         user_id:getUid(),
-        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme,activeSessions:profile.activeSessions||{},updatedAt:Date.now()},
+        data:{name:profile.name,stats:profile.stats,sessions:profile.sessions||0,theme:profile.theme,activeSessions:profile.activeSessions||{},sm2:profile.sm2||{},deadlineDate:profile.deadlineDate||null,updatedAt:Date.now()},
         updated_at:new Date().toISOString()
       })
     });
@@ -1145,7 +1145,15 @@ async function pushToCloud(){
       console.warn('Supabase push:',res.status,err);
       tgLog('sync','Ошибка сохранения в облако',{status:res.status,error:err});
     }
-  }catch(e){setSyncIcon('err');console.warn('Supabase push:',e);tgLog('sync','push exception',{msg:String(e)});}
+  }catch(e){
+    // NetworkError after PC wake — silent retry once after 4s
+    setSyncIcon('err');
+    if(String(e).includes('NetworkError')||String(e).includes('Failed to fetch')){
+      setTimeout(()=>pushToCloud(),4000);
+    } else {
+      tgLog('sync','push exception',{msg:String(e)});
+    }
+  }
 }
 async function pullFromCloud(onLoaded){
   if(!_authToken){setSyncIcon('err');return;}
@@ -1179,6 +1187,8 @@ async function pullFromCloud(onLoaded){
       if(c.activeSessions&&cloudTime>=localTime) profile.activeSessions=c.activeSessions;
       if(c.theme) applyTheme(c.theme);
       profile.name=c.name||profile.name;
+      if(c.sm2&&cloudTime>=localTime) profile.sm2=c.sm2;
+      if(c.deadlineDate&&cloudTime>=localTime) profile.deadlineDate=c.deadlineDate;
       save();
       if(onLoaded) onLoaded();
     }
@@ -1952,6 +1962,7 @@ function buildHome(){
   });
   initCardTilt();
   setTimeout(drawBrainLines, 500);
+  renderPlanBlock();
 }
 
 function drawBrainLines(){
@@ -2000,27 +2011,24 @@ function drawBrainLines(){
     paths.push(path);
   });
 
+  // Animate lines
   if(window.gsap){
-    gsap.to(paths,{
-      strokeDashoffset:0,duration:1,ease:'power2.inOut',
-      stagger:{amount:0.7,from:'center'}
-    });
-    // Subtle alternating float
-    allCards.forEach((card,i)=>{
-      gsap.to(card,{
-        y: i%2===0 ? '-=5' : '+=5',
-        duration:2.2+i*.12,
-        repeat:-1,yoyo:true,ease:'sine.inOut',delay:i*.07
-      });
-    });
+    gsap.to(paths,{strokeDashoffset:0,duration:1,ease:'power2.inOut',stagger:{amount:0.7,from:'center'}});
   } else {
     paths.forEach((p,i)=>{
-      setTimeout(()=>{
-        p.style.transition='stroke-dashoffset 0.9s ease';
-        p.style.strokeDashoffset='0';
-      },80+i*55);
+      setTimeout(()=>{p.style.transition='stroke-dashoffset 0.9s ease';p.style.strokeDashoffset='0';},80+i*55);
     });
   }
+  // Smooth CSS float — random drift per card, no jerk
+  allCards.forEach((card,i)=>{
+    const dur=(2.8+Math.random()*2).toFixed(2);
+    const delay=(Math.random()*2.5).toFixed(2);
+    const anim=i%2===0?'cardDrift':'cardDriftAlt';
+    card.style.animation=`fadeUp .4s ease backwards, ${anim} ${dur}s ease-in-out ${delay}s infinite`;
+    // Slight random horizontal nudge within column
+    const nudge=(Math.random()*14-7).toFixed(1);
+    card.style.marginLeft=nudge+'px';
+  });
 }
 
 function wireQuizButtons(){
@@ -2567,19 +2575,25 @@ async function sbGetUser(token){
 
 async function sbRefresh(){
   const r=localStorage.getItem('sb_refresh'); if(!r) return null;
-  try{
-    const res=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{
-      method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},
-      body:JSON.stringify({refresh_token:r})
-    });
-    if(!res.ok) return null;
-    const d=await res.json();
-    if(d.access_token){
-      localStorage.setItem('sb_access',d.access_token);
-      if(d.refresh_token) localStorage.setItem('sb_refresh',d.refresh_token);
-      return d.access_token;
+  // Retry up to 3 times with backoff (handles NetworkError after PC wake)
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const res=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{
+        method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({refresh_token:r})
+      });
+      if(!res.ok) return null;
+      const d=await res.json();
+      if(d.access_token){
+        localStorage.setItem('sb_access',d.access_token);
+        if(d.refresh_token) localStorage.setItem('sb_refresh',d.refresh_token);
+        return d.access_token;
+      }
+      return null;
+    }catch(e){
+      if(attempt<2) await new Promise(r=>setTimeout(r,(attempt+1)*2000));
     }
-  }catch(e){}
+  }
   return null;
 }
 
@@ -2682,12 +2696,19 @@ function initGate(){
     if(!email.includes('@')||!email.includes('.')){ showToast(t('email_invalid')); return; }
     if(!pass){ showToast(t('password_empty')); return; }
     $id('loginGo').disabled=true; $id('loginGo').textContent=t('signing_in');
+    // Supabase bcrypt truncates passwords at 72 bytes — warn user
+    const passBytes=new TextEncoder().encode(pass).length;
+    if(passBytes>72){
+      $id('loginGo').disabled=false; $id('loginGo').textContent=t('login_btn');
+      showToast('Пароль слишком длинный. Supabase принимает максимум 72 символа. Сократи пароль.');
+      return;
+    }
     const data=await sbPasswordLogin(email,pass);
     if(data&&data.access_token){
       await onLoggedIn(data,email);
     } else {
       $id('loginGo').disabled=false; $id('loginGo').textContent=t('login_btn');
-      showToast(t('login_error'));
+      showToast(t('login_error')+' · Или войди по коду на email');
     }
   };
   $id('passIn').onkeydown=e=>{ if(e.key==='Enter') $id('loginGo').click(); };
@@ -2703,6 +2724,7 @@ function initGate(){
     const pass=$id('regPass').value||'';
     if(!email.includes('@')||!email.includes('.')){ showToast(t('email_invalid')); return; }
     if(pass.length<6){ showToast(t('password_short')); return; }
+    if(new TextEncoder().encode(pass).length>72){ showToast('Максимум 72 символа — Supabase bcrypt ограничение'); return; }
     if(pwScore(pass)<2){ showToast(t('password_weak')); return; }
     $id('regGo').disabled=true; $id('regGo').textContent=t('creating');
     const r=await sbSignUp(email,pass);
@@ -2968,6 +2990,236 @@ document.getElementById('owlSvg').innerHTML=buildOwl(80).match(/<svg[^>]*>(.*)<\
   localStorage.removeItem('sb_access');
   localStorage.removeItem('sb_refresh');
   initGate();
+})();
+
+/* ========== SM-2 SPACED REPETITION ========== */
+const SM2_TODAY=()=>{ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); };
+
+function sm2Update(qId,quality){
+  // quality: 5=perfect 4=good 3=hard-but-correct 2=fail 1=fail 0=blackout
+  if(!profile.sm2) profile.sm2={};
+  const c=profile.sm2[qId]||{interval:0,ef:2.5,nextReview:0,reps:0};
+  if(quality>=3){
+    if(c.reps===0) c.interval=1;
+    else if(c.reps===1) c.interval=6;
+    else c.interval=Math.round(c.interval*c.ef);
+    c.reps++;
+    c.ef=Math.max(1.3, c.ef+(0.1-(5-quality)*(0.08+(5-quality)*0.02)));
+  } else {
+    c.reps=0; c.interval=1;
+  }
+  c.nextReview=SM2_TODAY()+c.interval*86400000;
+  c.lastQuality=quality;
+  profile.sm2[qId]=c;
+}
+
+function sm2Quality(result){
+  if(result==='correct') return 5;
+  if(result==='partial') return 3;
+  if(result==='hinted') return 2;
+  return 1; // wrong/skipped
+}
+
+/* Hook into record() — called for each answer */
+const _origRecord=window.record; // will be replaced below
+function sm2Hook(q,pid,result){
+  sm2Update(q._id, sm2Quality(result));
+}
+
+/* Build today's plan */
+function buildTodayPlan(){
+  if(!profile.sm2) profile.sm2={};
+  const today=SM2_TODAY();
+  const deadline=profile.deadlineDate||null;
+
+  // Due for review (already seen, overdue)
+  const due=DATA.questions
+    .filter((_,i)=>{const c=profile.sm2[i]; return c&&c.reps>0&&c.nextReview<=today;})
+    .map((_,i)=>i);
+
+  // New questions (never seen or reps===0)
+  const newQ=DATA.questions
+    .filter((_,i)=>!profile.sm2[i]||profile.sm2[i].reps===0)
+    .map((_,i)=>i);
+
+  // Daily new quota from deadline
+  let dailyNew=8; // default
+  if(deadline){
+    const daysLeft=Math.max(1,Math.ceil((deadline-today)/86400000));
+    const learned=DATA.questions.filter((_,i)=>profile.sm2[i]&&profile.sm2[i].reps>=2).length;
+    const remaining=DATA.questions.length-learned;
+    dailyNew=Math.ceil(remaining/daysLeft);
+  }
+
+  // Group due by discipline
+  const dueByDisc={};
+  due.forEach(i=>{
+    const disc=DATA.questions[i].discipline;
+    if(!dueByDisc[disc]) dueByDisc[disc]=[];
+    dueByDisc[disc].push(i);
+  });
+
+  // Group new by discipline (pick from disciplines with most unseen)
+  const newSlice=newQ.slice(0,dailyNew);
+  const newByDisc={};
+  newSlice.forEach(i=>{
+    const disc=DATA.questions[i].discipline;
+    if(!newByDisc[disc]) newByDisc[disc]=[];
+    newByDisc[disc].push(i);
+  });
+
+  return {due,dueByDisc,newSlice,newByDisc,dailyNew,deadline,
+    learned:DATA.questions.filter((_,i)=>profile.sm2[i]&&profile.sm2[i].reps>=2).length,
+    total:DATA.questions.length};
+}
+
+/* Render plan block on home screen */
+function renderPlanBlock(){
+  let el=document.getElementById('planTodayBlock');
+  if(!el){
+    el=document.createElement('div');
+    el.id='planTodayBlock';
+    el.className='plan-block';
+    const home=document.getElementById('home');
+    const brainWrap=document.getElementById('brainWrap');
+    if(home&&brainWrap) home.insertBefore(el,brainWrap);
+  }
+
+  const plan=buildTodayPlan();
+  const dueCount=plan.due.length;
+  const newCount=plan.newSlice.length;
+  const learned=plan.learned;
+  const pct=Math.round(learned/plan.total*100);
+
+  // Forecast
+  let forecastHtml='';
+  if(plan.deadline){
+    const today=SM2_TODAY();
+    const daysLeft=Math.max(1,Math.ceil((plan.deadline-today)/86400000));
+    const daysNeeded=plan.dailyNew>0?Math.ceil((plan.total-learned)/plan.dailyNew):999;
+    const onTrack=daysNeeded<=daysLeft;
+    forecastHtml=`<div class="plan-forecast ${onTrack?'ok':'warn'}">
+      ${onTrack?'✓ Успеваешь':'⚠ Надо торопиться'} — осталось <b>${daysLeft} дн.</b>,
+      нужно <b>${plan.dailyNew}/день</b>
+    </div>`;
+  }
+
+  // Owl instruction
+  let owlInstr='';
+  if(dueCount>0&&newCount>0) owlInstr=`Сегодня: повтори ${dueCount} и изучи ${newCount} новых.`;
+  else if(dueCount>0) owlInstr=`Сегодня только повторение: ${dueCount} вопросов.`;
+  else if(newCount>0) owlInstr=`Повторений нет. Изучи ${newCount} новых!`;
+  else owlInstr='Отлично — на сегодня всё готово!';
+
+  el.innerHTML=`
+  <div class="plan-header">
+    <span>📅 План на сегодня</span>
+    <button class="btn ghost xs" onclick="openDeadlineModal()" style="font-size:11px">⚙ Дедлайн</button>
+  </div>
+  <div class="plan-owl-tip">${owlInstr}</div>
+  <div class="plan-progress-row">
+    <span class="plan-learned">${learned} / ${plan.total} выучено</span>
+    <span class="plan-pct">${pct}%</span>
+  </div>
+  <div class="plan-pbar"><div class="plan-pbar-fill" style="width:${pct}%"></div></div>
+  ${forecastHtml}
+  <div class="plan-tasks" id="planTasks"></div>`;
+
+  const tasks=document.getElementById('planTasks');
+  if(dueCount===0&&newCount===0){
+    tasks.innerHTML=`<div class="plan-done">Все задания на сегодня выполнены! 🎉</div>`;
+    return;
+  }
+
+  // Due tasks by discipline
+  Object.entries(plan.dueByDisc).forEach(([disc,ids])=>{
+    const btn=document.createElement('div');
+    btn.className='plan-task';
+    btn.innerHTML=`<span class="plan-task-label">🔁 Повторить: <b>${disc}</b> — ${ids.length} вопр.</span>
+      <button class="btn sm" onclick="startSM2Session('${disc}','review',${JSON.stringify(ids)})">Начать</button>`;
+    tasks.appendChild(btn);
+  });
+
+  // New tasks by discipline
+  Object.entries(plan.newByDisc).forEach(([disc,ids])=>{
+    const btn=document.createElement('div');
+    btn.className='plan-task plan-task-new';
+    btn.innerHTML=`<span class="plan-task-label">✨ Новые: <b>${disc}</b> — ${ids.length} вопр.</span>
+      <button class="btn sm" onclick="startSM2Session('${disc}','new',${JSON.stringify(ids)})">Начать</button>`;
+    tasks.appendChild(btn);
+  });
+}
+
+function startSM2Session(disc,type,ids){
+  playClick();
+  const pool=ids.map(i=>({...DATA.questions[i],_id:i}));
+  session={disc,mode:'sequential',pool,queue:pool.map((_,i)=>i),
+    total:pool.length,isRandom40:false,
+    firstSeen:new Set(),firstCorrect:new Set(),wrong:[],wrongIds:[],
+    partials:[],skipped:[],hinted:new Set(),history:[],elapsed:0,startTime:Date.now()};
+  show('quiz');
+  document.getElementById('qDisc').textContent=`${type==='review'?'Повторение':'Новые'}: ${disc}`;
+  wireQuizButtons(); _shownMilestones=new Set(); startTimer(); nextQ();
+}
+
+function openDeadlineModal(){
+  playClick();
+  const cur=profile.deadlineDate?new Date(profile.deadlineDate).toISOString().slice(0,10):'';
+  openOverlay(`<div class="modal" style="max-width:400px">
+    <h2>🎯 Режим дедлайна</h2>
+    <p class="sub">Укажи дату экзамена — система посчитает, сколько учить каждый день.</p>
+    <input class="gate-input" id="deadlineIn" type="date" value="${cur}" min="${new Date().toISOString().slice(0,10)}" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="saveDeadline()">Сохранить</button>
+      ${cur?`<button class="btn ghost" style="flex:1;justify-content:center" onclick="clearDeadline()">Убрать</button>`:''}
+      <button class="btn ghost" style="flex:1;justify-content:center" onclick="closeOverlay()">Отмена</button>
+    </div>
+  </div>`);
+}
+
+function saveDeadline(){
+  const val=document.getElementById('deadlineIn')?.value;
+  if(!val){ showToast('Выбери дату'); return; }
+  profile.deadlineDate=new Date(val).getTime();
+  save(); closeOverlay(); renderPlanBlock();
+  showToast('Дедлайн установлен!');
+}
+
+function clearDeadline(){
+  delete profile.deadlineDate; save(); closeOverlay(); renderPlanBlock();
+}
+
+/* CSS for plan block — injected once */
+(function injectPlanCSS(){
+  const s=document.createElement('style');
+  s.textContent=`
+.plan-block{background:var(--panel);border:1.5px solid var(--line);border-radius:var(--r2);padding:16px;margin-bottom:18px;animation:fadeUp .4s ease}
+.plan-header{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;margin-bottom:8px}
+.plan-owl-tip{font-size:13px;color:var(--muted);margin-bottom:10px}
+.plan-progress-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.plan-learned{color:var(--muted)}
+.plan-pct{color:var(--ok);font-weight:700}
+.plan-pbar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.plan-pbar-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .8s ease}
+.plan-forecast{font-size:12px;padding:6px 10px;border-radius:8px;margin-bottom:10px}
+.plan-forecast.ok{background:rgba(78,184,96,.12);color:var(--ok)}
+.plan-forecast.warn{background:rgba(224,80,32,.12);color:#e05a20}
+.plan-tasks{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.plan-task{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:10px;padding:10px 14px;gap:10px}
+.plan-task-new{border-left:3px solid var(--accent)}
+.plan-task-label{font-size:13px;flex:1}
+.plan-done{text-align:center;color:var(--ok);font-size:14px;padding:10px 0}
+  `;
+  document.head.appendChild(s);
+})();
+
+/* Patch record() to call SM-2 */
+(function patchRecord(){
+  const orig=record;
+  window.record=function(q,pid,result,userAnswer){
+    orig(q,pid,result,userAnswer);
+    sm2Hook(q,pid,result);
+  };
 })();
 </script>
 </body>
