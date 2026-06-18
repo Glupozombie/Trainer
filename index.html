@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Accreditation Trainer</title>
+<title>Тренажёр аккредитации 🦉</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <style>
 /* ============ THEMES ============ */
 :root{
@@ -164,11 +166,40 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .dpbar i{display:block;height:100%;background:var(--ok);border-radius:99px;width:0;transition:width .8s ease .2s}
 .resume-badge{background:var(--accent-soft);border:1.5px solid var(--accent);color:var(--accent2);font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;animation:pulse 2s infinite}
 
-/* ============ OWL ============ */
-.owl-wrap{display:flex;justify-content:center;margin-bottom:20px}
-#owlSvg{width:80px;height:80px;cursor:pointer;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));animation:owlWiggle 3s ease-in-out infinite}
+/* ============ OWL / BRAIN HUB ============ */
+.owl-wrap{display:flex;justify-content:center;margin-bottom:20px;position:relative}
+.owl-wrap::before,.owl-wrap::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,255,255,0.07);animation:hubRing 3s ease-in-out infinite}
+.owl-wrap::before{width:120px;height:120px;animation-delay:0s}
+.owl-wrap::after{width:160px;height:160px;animation-delay:.6s}
+@keyframes hubRing{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:.12;transform:translate(-50%,-50%) scale(1.05)}}
+#owlSvg{width:80px;height:80px;cursor:pointer;filter:drop-shadow(0 0 16px rgba(255,200,80,.25)) drop-shadow(0 4px 12px rgba(0,0,0,.4));animation:owlWiggle 3s ease-in-out infinite;position:relative;z-index:1}
 #owlSvg:hover{animation:owlBounce .6s ease}
 .owl-msg{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px;min-height:20px;transition:all .3s}
+.brain-line{fill:none;stroke:rgba(255,255,255,0.1);stroke-width:1.5;stroke-linecap:round;opacity:0;transition:opacity .3s}
+/* ---- BRAIN LAYOUT ---- */
+.brain-layout{display:flex;align-items:center;gap:16px;padding:0 0 8px}
+.brain-col{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.brain-hub-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;width:140px}
+.brain-hub-col .owl-wrap{margin-bottom:6px}
+.brain-hub-col .owl-msg{font-size:12px;text-align:center;max-width:130px}
+/* Compact card style for brain layout */
+#brainLeft .dcard,#brainRight .dcard{height:78px}
+#brainLeft .dcard-body,#brainRight .dcard-body{padding:10px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85) 30%)}
+#brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:12.5px;margin-bottom:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#brainLeft .dcard-body .dpbar,#brainRight .dcard-body .dpbar{margin-top:5px}
+#brainLeft .dcard-body .dbest,#brainRight .dcard-body .dbest{top:-22px;font-size:11px;padding:1px 6px}
+#brainLeft .dcard-body .dc,#brainRight .dcard-body .dc{font-size:11px}
+/* Right column text align */
+#brainRight .dcard-body{text-align:right}
+/* Mobile: stack normally */
+@media(max-width:640px){
+  .brain-layout{flex-direction:column;gap:10px}
+  .brain-col{width:100%}
+  .brain-hub-col{width:100%}
+  #brainLeft .dcard,#brainRight .dcard{height:160px}
+  #brainLeft .dcard-body,#brainRight .dcard-body{padding:14px 16px 16px;text-align:left}
+  #brainLeft .dcard-body .dn,#brainRight .dcard-body .dn{font-size:15px;white-space:normal}
+}
 
 /* ============ OVERLAY ============ */
 .overlay{position:fixed;inset:0;background:rgba(10,8,6,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100;backdrop-filter:blur(6px);animation:fadeIn .25s}
@@ -550,9 +581,17 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
       </div>
     </div>
     <p class="sub" id="homeSub"></p>
-    <div class="owl-wrap"><svg id="owlSvg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"></svg></div>
-    <div class="owl-msg" id="owlMsg"></div>
-    <div class="grid" id="homeGrid"></div>
+    <div id="brainWrap" style="position:relative">
+      <svg id="brainLinesSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible"></svg>
+      <div class="brain-layout">
+        <div class="brain-col" id="brainLeft"></div>
+        <div class="brain-hub-col">
+          <div class="owl-wrap"><svg id="owlSvg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="owl-msg" id="owlMsg"></div>
+        </div>
+        <div class="brain-col" id="brainRight"></div>
+      </div>
+    </div>
   </section>
 
   <section id="quiz" class="hidden">
@@ -1844,7 +1883,7 @@ const DISC_IMG={
 };
 
 function initCardTilt(){
-  document.querySelectorAll('#homeGrid .dcard').forEach(card=>{
+  document.querySelectorAll('#brainLeft .dcard,#brainRight .dcard').forEach(card=>{
     let leaveTimer;
     card.addEventListener('mousemove',e=>{
       clearTimeout(leaveTimer);
@@ -1875,8 +1914,11 @@ function buildHome(){
   document.getElementById('homeSub').innerHTML=
     `<span style="color:var(--muted)">${t('sessions_stat')} <b style="color:var(--accent2)">${sess}</b></span>`+
     (best?` &nbsp;·&nbsp; <span style="color:var(--muted)">${t('started_stat')} <b style="color:var(--accent2)">${best}</b></span> &nbsp;·&nbsp; <span style="color:var(--muted)">${t('avg_stat')} <b style="color:var(--ok)">${avg}%</b></span>`:'');
-  const g=document.getElementById('homeGrid'); g.innerHTML='';
-  let delay=0;
+  const leftCol=document.getElementById('brainLeft');
+  const rightCol=document.getElementById('brainRight');
+  if(leftCol) leftCol.innerHTML='';
+  if(rightCol) rightCol.innerHTML='';
+  let delay=0; let cardIdx=0;
   const activeSessions=profile.activeSessions||{};
   const resumeBadge=(disc)=>{
     const key=disc===null?'__all__':disc;
@@ -1894,7 +1936,9 @@ function buildHome(){
     const img=disc&&DISC_IMG[disc];
     c.innerHTML=(img?`<div class="dcard-photo" style="background-image:url('${img}')"></div>`:'')+`<div class="dcard-body">${html}</div>`;
     c.onclick=cb;
-    g.appendChild(c);
+    const col=(cardIdx%2===0?leftCol:rightCol)||leftCol;
+    if(col) col.appendChild(c);
+    cardIdx++;
     return c;
   };
   addCard(`<div class="dn">${t('all_disc')}</div><div class="dc">${DATA.questions.length} ${t('questions_n',DATA.questions.length).replace(/^\d+ /,'')}</div>${resumeBadge(null)}`,'all-card',()=>chooseMode(null),null);
@@ -1907,7 +1951,78 @@ function buildHome(){
       '',()=>chooseMode(name),name);
   });
   initCardTilt();
+  setTimeout(drawBrainLines, 500);
 }
+
+function drawBrainLines(){
+  const wrap=document.getElementById('brainWrap');
+  const svg=document.getElementById('brainLinesSvg');
+  const owl=document.getElementById('owlSvg');
+  if(!wrap||!svg||!owl) return;
+  svg.innerHTML='';
+
+  const wRect=wrap.getBoundingClientRect();
+  svg.setAttribute('viewBox',`0 0 ${wRect.width} ${wRect.height}`);
+
+  const owlRect=owl.getBoundingClientRect();
+  const cx=owlRect.left+owlRect.width/2-wRect.left;
+  const cy=owlRect.top+owlRect.height/2-wRect.top;
+
+  const allCards=[
+    ...document.querySelectorAll('#brainLeft .dcard'),
+    ...document.querySelectorAll('#brainRight .dcard')
+  ];
+  const paths=[];
+
+  allCards.forEach(card=>{
+    const r=card.getBoundingClientRect();
+    const isLeft=r.left+r.width/2<wRect.left+wRect.width/2;
+    // connect from owl center to nearest card edge (right edge for left cards, left edge for right cards)
+    const tx=(isLeft ? r.right : r.left)-wRect.left;
+    const ty=r.top+r.height/2-wRect.top;
+
+    // Gentle S-curve
+    const mx=cx+(tx-cx)*.5;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M ${cx} ${cy} C ${mx} ${cy}, ${mx} ${ty}, ${tx} ${ty}`);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','rgba(255,255,255,0.13)');
+    path.setAttribute('stroke-width','1.5');
+    path.setAttribute('stroke-linecap','round');
+
+    try{
+      const len=path.getTotalLength();
+      path.style.strokeDasharray=len;
+      path.style.strokeDashoffset=len;
+    }catch(e){}
+
+    svg.appendChild(path);
+    paths.push(path);
+  });
+
+  if(window.gsap){
+    gsap.to(paths,{
+      strokeDashoffset:0,duration:1,ease:'power2.inOut',
+      stagger:{amount:0.7,from:'center'}
+    });
+    // Subtle alternating float
+    allCards.forEach((card,i)=>{
+      gsap.to(card,{
+        y: i%2===0 ? '-=5' : '+=5',
+        duration:2.2+i*.12,
+        repeat:-1,yoyo:true,ease:'sine.inOut',delay:i*.07
+      });
+    });
+  } else {
+    paths.forEach((p,i)=>{
+      setTimeout(()=>{
+        p.style.transition='stroke-dashoffset 0.9s ease';
+        p.style.strokeDashoffset='0';
+      },80+i*55);
+    });
+  }
+}
+
 function wireQuizButtons(){
   document.getElementById('exitBtn').onclick=confirmExit;
   document.getElementById('navToggle').onclick=toggleNav;
