@@ -284,6 +284,8 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .cdd-opt{padding:10px 14px;font-size:13.5px;cursor:pointer;transition:background .12s;white-space:normal;line-height:1.4}
 .cdd-opt:hover{background:var(--accent-soft);color:var(--accent2)}
 .cdd-opt.cdd-selected{background:var(--accent-soft);color:var(--accent2);font-weight:600}
+@keyframes cddChosen{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.cdd-label.cdd-anim{animation:cddChosen .22s ease}
 /* ordering drag */
 .order-list{display:flex;flex-direction:column;gap:8px;user-select:none}
 .order-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--line);
@@ -1424,8 +1426,11 @@ function initMatchDropdowns(){
       opt.addEventListener('click',e=>{
         e.stopPropagation();
         cdd.dataset.val=opt.dataset.val;
+        label.classList.remove('cdd-anim');
+        void label.offsetWidth; // reflow to restart animation
         label.textContent=opt.textContent;
         label.classList.remove('placeholder');
+        label.classList.add('cdd-anim');
         menu.querySelectorAll('.cdd-opt').forEach(o=>o.classList.remove('cdd-selected'));
         opt.classList.add('cdd-selected');
         cdd.classList.remove('open');
@@ -1597,10 +1602,11 @@ function record(q,pid,result,userAnswer){
 function autoSaveSession(){
   if(!session||!session.pool) return;
   try{
-    const key=session.isRandom40?'__random40__':(session.disc||'__all__');
+    const key=session.isRandom40?'__random40__':session.isSM2?'__sm2day__':(session.disc||'__all__');
     if(!profile.activeSessions) profile.activeSessions={};
     profile.activeSessions[key]={
       disc:session.disc, mode:session.mode, isRandom40:!!session.isRandom40,
+      isSM2:!!session.isSM2, sm2Type:session.sm2Type||null,
       poolIds:session.pool.map(q=>q._id),
       queue:[...session.queue], currentPid:session.currentPid,
       firstSeen:[...session.firstSeen], firstCorrect:[...session.firstCorrect],
@@ -1616,7 +1622,7 @@ function autoSaveSession(){
 }
 
 function clearActiveSession(){
-  const key=session?.isRandom40?'__random40__':(session?.disc||'__all__');
+  const key=session?.isRandom40?'__random40__':session?.isSM2?'__sm2day__':(session?.disc||'__all__');
   if(profile.activeSessions) delete profile.activeSessions[key];
   delete profile.activeSession;
   save();
@@ -1632,6 +1638,7 @@ function restoreSession(state){
   session={disc:state.disc,mode:state.mode,pool,
     queue:[...state.queue],currentPid:state.currentPid||0,
     total:state.total||pool.length,
+    isRandom40:!!state.isRandom40, isSM2:!!state.isSM2, sm2Type:state.sm2Type||null,
     firstSeen:new Set(state.firstSeen),firstCorrect:new Set(state.firstCorrect),
     wrong:state.wrongIds.map(id=>pool.find(q=>q._id===id)).filter(Boolean),
     wrongIds:[...state.wrongIds],partials:[],skipped:[],
@@ -3007,16 +3014,14 @@ function buildTodayPlan(){
 
   // New questions sorted by priority:
   // 1. Has wrong history (wrongCount > 0) — top priority
-  // 2. Confirmed weak disciplines (best 1-84%) — weakest first
+  // 2. Confirmed weak disciplines (best 1-89%) — weakest first
   // 3. Never-tried disciplines (best=0) treated as neutral (50%) — middle tier
-  // 4. Strong disciplines (best > 85%) pushed to back
+  // 4. Disciplines with best >= 90% excluded entirely — user already knows them well
   const effectiveBest=b=>b>0?b:50;
   const newQ=DATA.questions
     .map((q,i)=>({i,disc:q.discipline,wrongCount:profile.sm2[i]?.wrongCount||0,best:discBest[q.discipline]||0}))
-    .filter(x=>(!profile.sm2[x.i]||profile.sm2[x.i].reps===0)&&!dueSet.has(x.i))
+    .filter(x=>(!profile.sm2[x.i]||profile.sm2[x.i].reps===0)&&!dueSet.has(x.i)&&x.best<90)
     .sort((a,b)=>{
-      const aStrong=a.best>85?1:0, bStrong=b.best>85?1:0;
-      if(aStrong!==bStrong) return aStrong-bStrong;
       if(b.wrongCount!==a.wrongCount) return b.wrongCount-a.wrongCount;
       return effectiveBest(a.best)-effectiveBest(b.best);
     })
@@ -3137,19 +3142,35 @@ function renderPlanBlock(){
   ${forecastLine}
   ${weakHint}
   <div class="plan-summary">${parts.join(' · ')}</div>
-  <button class="btn plan-start-btn" onclick="startSM2Session(null,'day',${JSON.stringify(todayIds)})">Начать занятие</button>`;
+  ${(()=>{const saved=(profile.activeSessions||{})['__sm2day__'];const rem=saved?.queue?.length||0;
+    return saved&&rem>0
+      ? `<button class="btn plan-start-btn" onclick="resumeSM2Session()">Продолжить занятие <span style="font-size:12px;opacity:.7">(осталось ${rem})</span></button>`
+      : `<button class="btn plan-start-btn" onclick="startSM2Session(null,'day',${JSON.stringify(todayIds)})">Начать занятие</button>`;
+  })()}`;
+}
+
+function resumeSM2Session(){
+  playClick();
+  const as=(profile.activeSessions||{})['__sm2day__'];
+  if(!as||!as.queue||!as.queue.length){ renderPlanBlock(); return; }
+  if(restoreSession(as)){
+    show('quiz');
+    document.getElementById('qDisc').textContent='Занятие сегодня';
+    wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ();
+  }
 }
 
 function startSM2Session(disc,type,ids){
   playClick();
   const pool=ids.map(i=>({...DATA.questions[i],_id:i}));
   session={disc,mode:'sequential',pool,queue:pool.map((_,i)=>i),
-    total:pool.length,isRandom40:false,
+    total:pool.length,isRandom40:false,isSM2:true,sm2Type:type,
     firstSeen:new Set(),firstCorrect:new Set(),wrong:[],wrongIds:[],
     partials:[],skipped:[],hinted:new Set(),history:[],elapsed:0,startTime:Date.now()};
   show('quiz');
   const label=type==='review'?'Повторение':type==='hardest'?'Самые ошибочные':type==='day'?'Занятие сегодня':'Новые';
   document.getElementById('qDisc').textContent=disc?`${label}: ${disc}`:label;
+  autoSaveSession();
   wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ();
 }
 
