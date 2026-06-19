@@ -1369,9 +1369,12 @@ function renderMC(q){
     <span class="omark">${q.single?'○':'□'}</span><span class="otxt">${o.text}</span></div>`).join('')+`</div>`;
 }
 function renderMatch(q){
-  const allRights=q.pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
+  // Filter out dummy pairs where left is "-", empty, or whitespace only
+  if(!q._pairs) q._pairs=q.pairs.filter(p=>p.left&&p.left.trim()!=='-'&&p.left.trim()!=='');
+  const pairs=q._pairs;
+  const allRights=pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
   const rights=shuffle(allRights.slice());
-  return `<table class="match-table"><tbody>`+q.pairs.map((p,i)=>{
+  return `<table class="match-table"><tbody>`+pairs.map((p,i)=>{
     const leftDisplay=p.left||`<span style="color:var(--muted);font-size:12px">${t('formula_lbl')}</span>`;
     return `<tr data-i="${i}">
       <td class="match-left">${leftDisplay}</td>
@@ -1690,19 +1693,19 @@ function gradeSelf(q,pid,hinted){
 function gradeMatch(q,pid,hinted){
   const sels=[...document.querySelectorAll('.match-table select')];
   if(sels.some(s=>s.value==='-1'||s.value==='')){showToast(t('fill_matches'));return;}
-  // build rights array same way as renderMatch (all unique rights in original order)
-  const allRights=q.pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
+  const pairs=q._pairs||q.pairs;
+  const allRights=pairs.map(p=>p.right).filter((v,i,a)=>a.indexOf(v)===i);
   let ok=true;
   sels.forEach(s=>{
     const i=+s.dataset.i;
     const chosenRight=allRights[+s.value];
     const row=document.querySelector(`tr[data-i="${i}"]`);
-    if(chosenRight===q.pairs[i].right) row.classList.add('row-ok');
+    if(chosenRight===pairs[i].right) row.classList.add('row-ok');
     else{row.classList.add('row-bad'); ok=false;}
   });
   if(hinted&&applyHinted(ok,q,pid)) return;
-  const corr=q.pairs.map(p=>`${stripTags(p.left)||t('formula_lbl')} → ${stripTags(p.right)||t('formula_lbl')}`).join('\n');
-  const userAns=sels.map(s=>{const i=+s.dataset.i;const chosen=allRights[+s.value];return `${stripTags(q.pairs[i].left)||t('formula_lbl')} → ${stripTags(chosen)||t('formula_lbl')}`;}).join('\n');
+  const corr=pairs.map(p=>`${stripTags(p.left)||t('formula_lbl')} → ${stripTags(p.right)||t('formula_lbl')}`).join('\n');
+  const userAns=sels.map(s=>{const i=+s.dataset.i;const chosen=allRights[+s.value];return `${stripTags(pairs[i].left)||t('formula_lbl')} → ${stripTags(chosen)||t('formula_lbl')}`;}).join('\n');
   if(ok)showFb('correct',t('fb_correct'),null);else showFb('wrong',t('fb_wrong'),corr);
   record(q,pid,ok?'correct':'wrong',userAns); finishCheck(ok?'correct':'wrong');
 }
@@ -3031,77 +3034,62 @@ function renderPlanBlock(){
   const plan=buildTodayPlan();
   const dueCount=plan.due.length;
   const newCount=plan.newSlice.length;
+  const hardestCount=(plan.hardest||[]).length;
   const learned=plan.learned;
   const pct=Math.round(learned/plan.total*100);
+  const totalToday=dueCount+newCount+(hardestCount>0?hardestCount:0);
 
-  // Forecast
-  let forecastHtml='';
+  // Merge all today's IDs in priority order: due → hardest → new
+  const todayIds=[
+    ...plan.due,
+    ...(plan.hardest||[]),
+    ...plan.newSlice.filter(i=>!(plan.hardest||[]).includes(i))
+  ];
+
+  // Forecast line
+  let forecastLine='';
   if(plan.deadline){
     const today=SM2_TODAY();
     const daysLeft=Math.max(1,Math.ceil((plan.deadline-today)/86400000));
-    const daysNeeded=plan.dailyNew>0?Math.ceil((plan.total-learned)/plan.dailyNew):999;
-    const onTrack=daysNeeded<=daysLeft;
-    forecastHtml=`<div class="plan-forecast ${onTrack?'ok':'warn'}">
-      ${onTrack?'✓ Успеваешь':'⚠ Надо торопиться'} — осталось <b>${daysLeft} дн.</b>,
-      нужно <b>${plan.dailyNew}/день</b>
+    const onTrack=Math.ceil((plan.total-learned)/Math.max(1,plan.dailyNew))<=daysLeft;
+    forecastLine=`<div class="plan-forecast ${onTrack?'ok':'warn'}" style="margin-bottom:12px">
+      ${onTrack?'✓ Успеваешь':'⚠ Надо торопиться'} — осталось <b>${daysLeft} дн.</b>, нужно <b>${plan.dailyNew}/день</b>
     </div>`;
   }
 
-  // Owl instruction — mention weak disciplines if any
+  // Summary line: what's in today's session
+  const parts=[];
+  if(dueCount) parts.push(`${dueCount} повтор${dueCount===1?'ение':'ений'}`);
+  if(newCount) parts.push(`${newCount} нов${newCount===1?'ый':newCount<5?'ых':'ых'}`);
+  if(hardestCount) parts.push(`${hardestCount} ошибочн${hardestCount===1?'ый':'ых'}`);
+
+  // Weak discipline hint
   const weak=plan.weakDiscs||[];
-  let owlInstr='';
-  if(dueCount>0&&newCount>0) owlInstr=`Сегодня: повтори ${dueCount} и изучи ${newCount} новых.`;
-  else if(dueCount>0) owlInstr=`Сегодня только повторение: ${dueCount} вопросов.`;
-  else if(newCount>0) owlInstr=`Повторений нет. Изучи ${newCount} новых!`;
-  else owlInstr='Отлично — на сегодня всё готово!';
-  if(weak.length>0) owlInstr+=` Слабые места: ${weak.slice(0,2).join(', ')}${weak.length>2?' и ещё '+(weak.length-2):''}. Новые вопросы взяты оттуда.`;
+  const weakHint=weak.length>0?`<div class="plan-weak-hint">Слабее всего: <b>${weak.slice(0,2).join(', ')}${weak.length>2?' и ещё '+(weak.length-2):''}</b> — занятие начнётся с них.</div>`:'';
 
-  el.innerHTML=`
-  <div class="plan-header">
-    <span>📅 План на сегодня</span>
-    <button class="btn ghost xs" onclick="openDeadlineModal()" style="font-size:11px">⚙ Дедлайн</button>
-  </div>
-  <div class="plan-owl-tip">${owlInstr}</div>
-  <div class="plan-progress-row">
-    <span class="plan-learned">${learned} / ${plan.total} выучено</span>
-    <span class="plan-pct">${pct}%</span>
-  </div>
-  <div class="plan-pbar"><div class="plan-pbar-fill" style="width:${pct}%"></div></div>
-  ${forecastHtml}
-  <div class="plan-tasks" id="planTasks"></div>`;
-
-  const tasks=document.getElementById('planTasks');
-  if(dueCount===0&&newCount===0){
-    tasks.innerHTML=`<div class="plan-done">Все задания на сегодня выполнены! 🎉</div>`;
+  if(totalToday===0){
+    el.innerHTML=`
+    <div class="plan-header">
+      <span>На сегодня всё готово</span>
+      <button class="btn ghost xs" onclick="openDeadlineModal()">⚙ Дедлайн</button>
+    </div>
+    <div class="plan-progress-row"><span class="plan-learned">${learned} / ${plan.total} выучено</span><span class="plan-pct">${pct}%</span></div>
+    <div class="plan-pbar"><div class="plan-pbar-fill" style="width:${pct}%"></div></div>
+    ${forecastLine}`;
     return;
   }
 
-  // Due tasks by discipline
-  Object.entries(plan.dueByDisc).forEach(([disc,ids])=>{
-    const btn=document.createElement('div');
-    btn.className='plan-task';
-    btn.innerHTML=`<span class="plan-task-label">🔁 Повторить: <b>${disc}</b> — ${ids.length} вопр.</span>
-      <button class="btn sm" onclick="startSM2Session('${disc}','review',${JSON.stringify(ids)})">Начать</button>`;
-    tasks.appendChild(btn);
-  });
-
-  // New tasks by discipline
-  Object.entries(plan.newByDisc).forEach(([disc,ids])=>{
-    const btn=document.createElement('div');
-    btn.className='plan-task plan-task-new';
-    btn.innerHTML=`<span class="plan-task-label">✨ Новые: <b>${disc}</b> — ${ids.length} вопр.</span>
-      <button class="btn sm" onclick="startSM2Session('${disc}','new',${JSON.stringify(ids)})">Начать</button>`;
-    tasks.appendChild(btn);
-  });
-
-  // Hardest questions block (cross-discipline)
-  if(plan.hardest&&plan.hardest.length>0){
-    const btn=document.createElement('div');
-    btn.className='plan-task plan-task-hard';
-    btn.innerHTML=`<span class="plan-task-label">🔥 Самые ошибочные — ${plan.hardest.length} вопр. из всех дисциплин</span>
-      <button class="btn sm warn" onclick="startSM2Session(null,'hardest',${JSON.stringify(plan.hardest)})">Разобрать</button>`;
-    tasks.appendChild(btn);
-  }
+  el.innerHTML=`
+  <div class="plan-header">
+    <span>Занятие на сегодня · <b>${totalToday} вопр.</b></span>
+    <button class="btn ghost xs" onclick="openDeadlineModal()">⚙ Дедлайн</button>
+  </div>
+  <div class="plan-progress-row"><span class="plan-learned">${learned} / ${plan.total} выучено</span><span class="plan-pct">${pct}%</span></div>
+  <div class="plan-pbar"><div class="plan-pbar-fill" style="width:${pct}%"></div></div>
+  ${forecastLine}
+  ${weakHint}
+  <div class="plan-summary">${parts.join(' · ')}</div>
+  <button class="btn plan-start-btn" onclick="startSM2Session(null,'day',${JSON.stringify(todayIds)})">Начать занятие</button>`;
 }
 
 function startSM2Session(disc,type,ids){
@@ -3112,7 +3100,7 @@ function startSM2Session(disc,type,ids){
     firstSeen:new Set(),firstCorrect:new Set(),wrong:[],wrongIds:[],
     partials:[],skipped:[],hinted:new Set(),history:[],elapsed:0,startTime:Date.now()};
   show('quiz');
-  const label=type==='review'?'Повторение':type==='hardest'?'Самые ошибочные':'Новые';
+  const label=type==='review'?'Повторение':type==='hardest'?'Самые ошибочные':type==='day'?'Занятие сегодня':'Новые';
   document.getElementById('qDisc').textContent=disc?`${label}: ${disc}`:label;
   wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ();
 }
@@ -3149,23 +3137,18 @@ function clearDeadline(){
   const s=document.createElement('style');
   s.textContent=`
 .plan-block{background:var(--panel);border:1.5px solid var(--line);border-radius:var(--r2);padding:16px;margin-bottom:18px;animation:fadeUp .4s ease}
-.plan-header{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;margin-bottom:8px}
-.plan-owl-tip{font-size:13px;color:var(--muted);margin-bottom:10px}
+.plan-header{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;margin-bottom:10px}
 .plan-progress-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
 .plan-learned{color:var(--muted)}
 .plan-pct{color:var(--ok);font-weight:700}
 .plan-pbar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-bottom:10px}
 .plan-pbar-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .8s ease}
-.plan-forecast{font-size:12px;padding:6px 10px;border-radius:8px;margin-bottom:10px}
+.plan-forecast{font-size:12px;padding:6px 10px;border-radius:8px}
 .plan-forecast.ok{background:rgba(78,184,96,.12);color:var(--ok)}
 .plan-forecast.warn{background:rgba(224,80,32,.12);color:#e05a20}
-.plan-tasks{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.plan-task{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:10px;padding:10px 14px;gap:10px}
-.plan-task-new{border-left:3px solid var(--accent)}
-.plan-task-hard{border-left:3px solid #e05a20}
-.btn.warn{background:#e05a20;color:#fff}
-.plan-task-label{font-size:13px;flex:1}
-.plan-done{text-align:center;color:var(--ok);font-size:14px;padding:10px 0}
+.plan-weak-hint{font-size:12px;color:var(--muted);margin:8px 0 4px}
+.plan-summary{font-size:13px;color:var(--muted);margin-bottom:12px}
+.plan-start-btn{width:100%;justify-content:center;font-size:15px;padding:12px;margin-top:4px}
   `;
   document.head.appendChild(s);
 })();
