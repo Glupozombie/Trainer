@@ -2947,10 +2947,27 @@ function buildTodayPlan(){
     .filter((_,i)=>{const c=profile.sm2[i]; return c&&c.reps>0&&c.nextReview<=today;})
     .map((_,i)=>i);
 
-  // New questions (never seen or reps===0)
+  const dueSet=new Set(due);
+
+  // Discipline weakness: lower best% = weaker = higher priority for new questions
+  // Disciplines with best > 85% are deprioritized (already strong)
+  const discBest={};
+  Object.keys(DATA.disciplines).forEach(d=>{ discBest[d]=profile.stats[d]?.best||0; });
+
+  // New questions sorted by priority:
+  // 1. Has wrong history (wrongCount > 0) — top priority regardless of disc
+  // 2. From weak disciplines (lowest best% first)
+  // 3. Disciplines with best > 85% pushed to back (no point drilling strong areas)
   const newQ=DATA.questions
-    .filter((_,i)=>!profile.sm2[i]||profile.sm2[i].reps===0)
-    .map((_,i)=>i);
+    .map((q,i)=>({i,disc:q.discipline,wrongCount:profile.sm2[i]?.wrongCount||0,best:discBest[q.discipline]||0}))
+    .filter(x=>(!profile.sm2[x.i]||profile.sm2[x.i].reps===0)&&!dueSet.has(x.i))
+    .sort((a,b)=>{
+      const aKnown=a.best>85?1:0, bKnown=b.best>85?1:0;
+      if(aKnown!==bKnown) return aKnown-bKnown;
+      if(b.wrongCount!==a.wrongCount) return b.wrongCount-a.wrongCount;
+      return a.best-b.best; // weakest disc first
+    })
+    .map(x=>x.i);
 
   // Daily new quota from deadline
   let dailyNew=8; // default
@@ -2969,7 +2986,7 @@ function buildTodayPlan(){
     dueByDisc[disc].push(i);
   });
 
-  // Group new by discipline (pick from disciplines with most unseen)
+  // Slice new to today's quota, group by discipline
   const newSlice=newQ.slice(0,dailyNew);
   const newByDisc={};
   newSlice.forEach(i=>{
@@ -2979,7 +2996,6 @@ function buildTodayPlan(){
   });
 
   // Hardest questions: most wrong answers, at least 2 wrongs, not currently due
-  const dueSet=new Set(due);
   const hardest=DATA.questions
     .map((_,i)=>({i,wrongCount:profile.sm2[i]?.wrongCount||0}))
     .filter(x=>x.wrongCount>=2&&!dueSet.has(x.i))
@@ -2987,7 +3003,13 @@ function buildTodayPlan(){
     .slice(0,10)
     .map(x=>x.i);
 
-  return {due,dueByDisc,newSlice,newByDisc,dailyNew,deadline,hardest,
+  // Weak disciplines: tried but score < 60% — for owl tip
+  const weakDiscs=Object.entries(discBest)
+    .filter(([,b])=>b>0&&b<60)
+    .sort((a,b)=>a[1]-b[1])
+    .map(([d])=>d);
+
+  return {due,dueByDisc,newSlice,newByDisc,dailyNew,deadline,hardest,weakDiscs,
     learned:DATA.questions.filter((_,i)=>profile.sm2[i]&&profile.sm2[i].reps>=2).length,
     total:DATA.questions.length};
 }
@@ -3023,12 +3045,14 @@ function renderPlanBlock(){
     </div>`;
   }
 
-  // Owl instruction
+  // Owl instruction — mention weak disciplines if any
+  const weak=plan.weakDiscs||[];
   let owlInstr='';
   if(dueCount>0&&newCount>0) owlInstr=`Сегодня: повтори ${dueCount} и изучи ${newCount} новых.`;
   else if(dueCount>0) owlInstr=`Сегодня только повторение: ${dueCount} вопросов.`;
   else if(newCount>0) owlInstr=`Повторений нет. Изучи ${newCount} новых!`;
   else owlInstr='Отлично — на сегодня всё готово!';
+  if(weak.length>0) owlInstr+=` Слабые места: ${weak.slice(0,2).join(', ')}${weak.length>2?' и ещё '+(weak.length-2):''}. Новые вопросы взяты оттуда.`;
 
   el.innerHTML=`
   <div class="plan-header">
