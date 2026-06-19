@@ -1860,6 +1860,29 @@ const DISC_IMG={
   'Философия':'https://cs17.pikabu.ru/s/2025/09/26/19/fqrvkm5s.jpg',
 };
 
+function initCardTilt(){
+  document.querySelectorAll('#cardsWrap .dcard').forEach(card=>{
+    let leaveTimer;
+    card.addEventListener('mousemove',e=>{
+      clearTimeout(leaveTimer);
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left-r.width/2)/r.width;
+      const y=(e.clientY-r.top-r.height/2)/r.height;
+      card.style.transform=`perspective(700px) rotateY(${x*18}deg) rotateX(${y*-18}deg)`;
+      const ph=card.querySelector('.dcard-photo');
+      if(ph) ph.style.transform=`translateX(${x*-15}px) translateY(${y*-15}px)`;
+    });
+    card.addEventListener('mouseleave',()=>{
+      leaveTimer=setTimeout(()=>{
+        card.style.transform='';
+        const ph=card.querySelector('.dcard-photo');
+        if(ph) ph.style.transform='';
+      },600);
+    });
+    card.addEventListener('mouseenter',()=>clearTimeout(leaveTimer));
+  });
+}
+
 function buildHome(){
   document.getElementById('homeGreet').textContent=t('greeting',profile.name);
   const cabBtnEl=document.getElementById('cabBtn'); if(cabBtnEl) cabBtnEl.textContent=t('cabinet_btn');
@@ -1901,6 +1924,7 @@ function buildHome(){
       <div class="dpbar"><i style="width:${b}%"></i></div>${resumeBadge(name)}`,
       '',()=>chooseMode(name),name);
   });
+  initCardTilt();
   renderPlanBlock();
 }
 
