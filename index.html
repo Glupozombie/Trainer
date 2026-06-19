@@ -3032,7 +3032,7 @@ function startSM2Session(disc,type,ids){
     partials:[],skipped:[],hinted:new Set(),history:[],elapsed:0,startTime:Date.now()};
   show('quiz');
   document.getElementById('qDisc').textContent=`${type==='review'?'Повторение':'Новые'}: ${disc}`;
-  wireQuizButtons(); _shownMilestones=new Set(); startTimer(); nextQ();
+  wireQuizButtons(); _shownMilestones.clear(); startTimer(); nextQ();
 }
 
 function openDeadlineModal(){
