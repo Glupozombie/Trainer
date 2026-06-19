@@ -2955,17 +2955,19 @@ function buildTodayPlan(){
   Object.keys(DATA.disciplines).forEach(d=>{ discBest[d]=profile.stats[d]?.best||0; });
 
   // New questions sorted by priority:
-  // 1. Has wrong history (wrongCount > 0) — top priority regardless of disc
-  // 2. From weak disciplines (lowest best% first)
-  // 3. Disciplines with best > 85% pushed to back (no point drilling strong areas)
+  // 1. Has wrong history (wrongCount > 0) — top priority
+  // 2. Confirmed weak disciplines (best 1-84%) — weakest first
+  // 3. Never-tried disciplines (best=0) treated as neutral (50%) — middle tier
+  // 4. Strong disciplines (best > 85%) pushed to back
+  const effectiveBest=b=>b>0?b:50;
   const newQ=DATA.questions
     .map((q,i)=>({i,disc:q.discipline,wrongCount:profile.sm2[i]?.wrongCount||0,best:discBest[q.discipline]||0}))
     .filter(x=>(!profile.sm2[x.i]||profile.sm2[x.i].reps===0)&&!dueSet.has(x.i))
     .sort((a,b)=>{
-      const aKnown=a.best>85?1:0, bKnown=b.best>85?1:0;
-      if(aKnown!==bKnown) return aKnown-bKnown;
+      const aStrong=a.best>85?1:0, bStrong=b.best>85?1:0;
+      if(aStrong!==bStrong) return aStrong-bStrong;
       if(b.wrongCount!==a.wrongCount) return b.wrongCount-a.wrongCount;
-      return a.best-b.best; // weakest disc first
+      return effectiveBest(a.best)-effectiveBest(b.best);
     })
     .map(x=>x.i);
 
