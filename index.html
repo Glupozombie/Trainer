@@ -267,10 +267,9 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   border-radius:var(--r);padding:13px 14px;font-family:var(--sans);font-size:15px;resize:vertical;min-height:72px;outline:none;transition:border-color .2s,box-shadow .2s}
 .qinput:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
 /* matching */
-.match-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.match-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;transition:background .25s;overflow:hidden}
-.match-table td.match-left{font-weight:500;font-size:14.5px;white-space:pre-wrap;padding-right:14px;width:42%}
-.match-table td:not(.match-left){width:58%}
+.match-table{width:100%;border-collapse:collapse}
+.match-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;transition:background .25s}
+.match-table td.match-left{font-weight:500;font-size:14.5px;white-space:pre-wrap;padding-right:14px;width:40%}
 .match-left img{max-width:100%;max-height:72px;object-fit:contain;background:#fff;border-radius:4px;padding:3px;display:block;margin:4px 0;-webkit-user-drag:none}
 .match-table tr.row-ok td{background:var(--ok-soft)}
 .match-table tr.row-bad td{background:var(--bad-soft)}
@@ -289,31 +288,6 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
 .cdd-opt.cdd-selected{background:var(--accent-soft);color:var(--accent2);font-weight:600}
 @keyframes cddChosen{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
 .cdd-label.cdd-anim{animation:cddChosen .22s ease}
-/* friends */
-.friends-section{margin-top:24px;border-top:1px solid var(--line);padding-top:20px}
-.friends-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px}
-.friend-card{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1.5px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .18s,transform .15s}
-.friend-card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.friend-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
-.friend-info{flex:1;min-width:0}
-.friend-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.friend-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
-.friend-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px;line-height:1;opacity:.5;transition:opacity .15s}
-.friend-remove:hover{opacity:1;color:var(--bad)}
-/* comparison overlay */
-.cmp-wrap{max-width:480px;max-height:85vh;overflow-y:auto}
-.cmp-header{display:grid;grid-template-columns:1fr 48px 1fr;gap:8px;align-items:center;margin-bottom:18px}
-.cmp-user{text-align:center}
-.cmp-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;margin:0 auto 6px}
-.cmp-vs{font-size:20px;font-weight:900;color:var(--muted);text-align:center}
-.cmp-banner{text-align:center;font-size:15px;font-weight:700;padding:10px 14px;background:var(--bg2);border-radius:var(--r);margin-bottom:16px}
-.cmp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;margin-bottom:5px;font-size:13px}
-.cmp-val{text-align:center;font-weight:700;padding:5px 6px;border-radius:8px;font-size:13px}
-.cmp-val.winner{background:var(--ok-soft);color:var(--ok)}
-.cmp-val.loser{background:var(--bad-soft);color:var(--bad)}
-.cmp-val.tie{background:var(--bg2);color:var(--muted)}
-.cmp-disc-name{text-align:center;font-size:11px;color:var(--muted);line-height:1.3}
-.cmp-section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
 /* ordering drag */
 .order-list{display:flex;flex-direction:column;gap:8px;user-select:none}
 .order-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--line);
@@ -1388,10 +1362,7 @@ function renderQ(q,pid,anim){
   card.style.animation=`${anim||'slideIn'} .3s ease`;
   card.dataset.pid=pid; card.dataset.checked='0'; card.dataset.hinted='0';
   card.innerHTML=`
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-      <span class="qtype-badge" style="margin-bottom:0">${typeIcon} ${typeRu}</span>
-      ${(!session.disc||session.isRandom40||session.isSM2)&&q.discipline?`<span class="qtype-badge" style="margin-bottom:0;background:var(--bg2);color:var(--muted);border:1px solid var(--line)">${q.discipline}</span>`:''}
-    </div>
+    <span class="qtype-badge">${typeIcon} ${typeRu}</span>
     <div class="qtext">${q.question}</div>
     <div id="ansArea">${body}</div>
     <div class="actions">
@@ -2240,154 +2211,6 @@ function reviewAttempt(disc, attIdx){
   document.getElementById('revRetrain').onclick=()=>{ startSession(disc,'wrong'); };
 }
 
-/* ========== FRIENDS ========== */
-function calcAvg(stats,discs){
-  const started=discs.filter(d=>stats[d]&&stats[d].best>0);
-  if(!started.length) return 0;
-  return Math.round(started.reduce((s,d)=>s+(stats[d]?.best||0),0)/started.length);
-}
-function formatLastOnline(iso){
-  if(!iso) return 'неизвестно';
-  const diff=Date.now()-new Date(iso).getTime();
-  if(diff<60000) return 'только что';
-  if(diff<3600000) return Math.floor(diff/60000)+' мин. назад';
-  if(diff<86400000) return Math.floor(diff/3600000)+' ч. назад';
-  if(diff<604800000) return Math.floor(diff/86400000)+' д. назад';
-  return new Date(iso).toLocaleDateString('ru');
-}
-async function fetchUserProgress(uid){
-  if(!_authToken) return null;
-  try{
-    const res=await fetch(`${SB_URL}/rest/v1/progress?user_id=eq.${encodeURIComponent(uid)}&select=data,updated_at`,{
-      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${_authToken}`}
-    });
-    if(!res.ok) return null;
-    const arr=await res.json();
-    return arr.length?{data:arr[0].data,updatedAt:arr[0].updated_at}:null;
-  }catch(e){ return null; }
-}
-function copyMyUID(){
-  playClick();
-  const uid=getUid();
-  if(uid==='anonymous'){showToast('Войдите в аккаунт, чтобы получить код');return;}
-  navigator.clipboard.writeText(uid).then(()=>showToast('✅ Код скопирован!')).catch(()=>{
-    openOverlay(`<div class="modal" style="max-width:400px"><h3 style="margin-top:0">Ваш код</h3><p style="word-break:break-all;font-family:monospace;font-size:12px;background:var(--bg2);padding:10px;border-radius:8px;user-select:all">${uid}</p><button class="btn" onclick="closeOverlay()">Закрыть</button></div>`);
-  });
-}
-async function addFriendByUID(uid){
-  uid=(uid||'').trim();
-  if(!uid){showToast('Введите код');return;}
-  if(!_authToken){showToast('Войдите в аккаунт');return;}
-  if(uid===getUid()){showToast('Это вы сами 😄');return;}
-  if((profile.friends||[]).some(f=>f.uid===uid)){showToast('Уже в списке друзей');return;}
-  showToast('Ищем пользователя…');
-  const res=await fetchUserProgress(uid);
-  if(!res){showToast('Пользователь не найден. Проверьте код.');return;}
-  const friendName=res.data?.name||'Аноним';
-  if(!profile.friends) profile.friends=[];
-  profile.friends.push({uid,name:friendName,addedAt:Date.now()});
-  save(); pushToCloud();
-  showToast(`🎉 ${friendName} добавлен(а) в друзья!`);
-  buildCabinet();
-}
-function removeFriend(uid){
-  playClick();
-  profile.friends=(profile.friends||[]).filter(f=>f.uid!==uid);
-  save(); pushToCloud(); buildCabinet();
-}
-async function openFriendComparison(friendUid,friendName){
-  playClick();
-  showToast('Загружаем статистику…');
-  const res=await fetchUserProgress(friendUid);
-  if(!res){showToast('Не удалось загрузить данные');return;}
-  const myStats=profile.stats||{};
-  const fStats=res.data?.stats||{};
-  const lastOnline=formatLastOnline(res.updatedAt);
-  const discs=Object.keys(DATA.disciplines);
-  const myAvg=calcAvg(myStats,discs);
-  const fAvg=calcAvg(fStats,discs);
-  let myWins=0,fWins=0;
-  const discRows=discs.map(d=>{
-    const m=myStats[d]?.best||0,f=fStats[d]?.best||0;
-    if(!m&&!f) return '';
-    const mC=m>f?'winner':m<f?'loser':'tie';
-    const fC=f>m?'winner':f<m?'loser':'tie';
-    if(m>f) myWins++; else if(f>m) fWins++;
-    const dShort=d.length>22?d.slice(0,22)+'…':d;
-    return `<div class="cmp-row"><div class="cmp-val ${mC}">${m?m+'%':'—'}</div><div class="cmp-disc-name">${dShort}</div><div class="cmp-val ${fC}">${f?f+'%':'—'}</div></div>`;
-  }).filter(Boolean).join('');
-  const myName=profile.name||'Вы';
-  const mAC=myAvg>fAvg?'winner':myAvg<fAvg?'loser':'tie';
-  const fAC=fAvg>myAvg?'winner':fAvg<myAvg?'loser':'tie';
-  const mWC=myWins>fWins?'winner':myWins<fWins?'loser':'tie';
-  const fWC=fWins>myWins?'winner':fWins<myWins?'loser':'tie';
-  const banner=myAvg===fAvg?'🤝 Ничья! Оба одинаково крутые!':myAvg>fAvg?`🏆 Вы круче, чем ${friendName}!`:`🔥 ${friendName} пока впереди! Не сдавайтесь!`;
-  openOverlay(`<div class="modal cmp-wrap">
-    <div class="cmp-header">
-      <div class="cmp-user">
-        <div class="cmp-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">${(myName[0]||'?').toUpperCase()}</div>
-        <div style="font-weight:700;font-size:13px">${myName}</div>
-        <div style="font-size:11px;color:var(--muted)">Вы</div>
-      </div>
-      <div class="cmp-vs">VS</div>
-      <div class="cmp-user">
-        <div class="cmp-avatar" style="background:linear-gradient(135deg,#e05,#f80)">${(friendName[0]||'?').toUpperCase()}</div>
-        <div style="font-weight:700;font-size:13px">${friendName}</div>
-        <div style="font-size:11px;color:var(--muted)">${lastOnline}</div>
-      </div>
-    </div>
-    <div class="cmp-banner">${banner}</div>
-    <div class="cmp-section-lbl">Общая статистика</div>
-    <div class="cmp-row" style="margin-bottom:5px">
-      <div class="cmp-val ${mAC}">${myAvg}%</div><div class="cmp-disc-name">средний балл</div><div class="cmp-val ${fAC}">${fAvg}%</div>
-    </div>
-    <div class="cmp-row" style="margin-bottom:14px">
-      <div class="cmp-val ${mWC}">${myWins} побед</div><div class="cmp-disc-name">по дисциплинам</div><div class="cmp-val ${fWC}">${fWins} побед</div>
-    </div>
-    <div class="cmp-section-lbl">По дисциплинам</div>
-    ${discRows||'<div style="color:var(--muted);text-align:center;padding:16px;font-size:13px">Никто ещё не прошёл ни одной дисциплины</div>'}
-    <div style="margin-top:16px"><button class="btn ghost" onclick="closeOverlay()" style="width:100%;justify-content:center">Закрыть</button></div>
-  </div>`);
-}
-function openAddFriendOverlay(){
-  playClick();
-  if(!_authToken){showToast('Войдите в аккаунт, чтобы добавлять друзей');return;}
-  openOverlay(`<div class="modal" style="max-width:400px">
-    <h3 style="margin-top:0">Добавить друга</h3>
-    <p style="font-size:13px;color:var(--muted)">Попросите друга открыть кабинет и нажать «Мой код». Введите его код сюда:</p>
-    <textarea id="friendCodeIn" class="qinput" style="min-height:56px;font-family:monospace;font-size:12px" placeholder="Вставьте код друга…"></textarea>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn" id="addFriendGo" style="flex:1;justify-content:center">Добавить</button>
-      <button class="btn ghost" onclick="closeOverlay()" style="flex:1;justify-content:center">Отмена</button>
-    </div>
-  </div>`);
-  document.getElementById('addFriendGo').onclick=()=>{ closeOverlay(); addFriendByUID(document.getElementById('friendCodeIn').value); };
-}
-function buildFriendsSection(){
-  const friends=profile.friends||[];
-  let html=`<div class="friends-section">
-    <div class="friends-title">Друзья (${friends.length})</div>`;
-  if(friends.length===0){
-    html+=`<div style="color:var(--muted);font-size:13px;margin-bottom:12px">Пока нет друзей. Добавьте первого!</div>`;
-  } else {
-    friends.forEach(f=>{
-      html+=`<div class="friend-card" onclick="openFriendComparison('${f.uid}','${f.name.replace(/'/g,"\'")}')">
-        <div class="friend-avatar">${(f.name[0]||'?').toUpperCase()}</div>
-        <div class="friend-info">
-          <div class="friend-name">${f.name}</div>
-          <div class="friend-meta">Нажмите, чтобы сравнить 📊</div>
-        </div>
-        <button class="friend-remove" title="Удалить" onclick="event.stopPropagation();removeFriend('${f.uid}')">✕</button>
-      </div>`;
-    });
-  }
-  html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-    <button class="btn ghost sm" onclick="openAddFriendOverlay()">+ Добавить друга</button>
-    <button class="btn ghost sm" onclick="copyMyUID()">📋 Мой код</button>
-  </div></div>`;
-  return html;
-}
-
 /* ========== CABINET ========== */
 function buildCabinet(){
   const discs=Object.keys(DATA.disciplines); const st=profile.stats||{};
@@ -2471,7 +2294,6 @@ function buildCabinet(){
       '</div>'+
     '</div>':'')+
     _mainHtml+
-    buildFriendsSection()+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px">'+
       '<button class="btn ghost sm" id="cabExportBtn">'+t('export_btn')+'</button>'+
       '<button class="btn ghost sm" id="cabImportBtn">'+t('import_btn')+'</button>'+
